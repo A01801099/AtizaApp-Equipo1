@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             AtizaAppEquipo1Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "ARTURO",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
