@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+*.json // Para ignorar los archivos .JSON
