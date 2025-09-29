@@ -1,4 +1,4 @@
-package mx.aro.atizaapp_equipo1
+package mx.aro.atizaapp_equipo1.view
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
