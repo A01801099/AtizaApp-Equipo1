@@ -42,6 +42,7 @@ android {
 
 dependencies {
 
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.android.gms:play-services-auth:20.3.0")
     implementation(libs.androidx.core.ktx)
@@ -59,6 +60,7 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.androidx.runtime)
+    implementation(libs.androidx.ui.unit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
