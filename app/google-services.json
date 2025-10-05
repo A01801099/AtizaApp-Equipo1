@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1088180180247",
+    "project_id": "atizaapp",
+    "storage_bucket": "atizaapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088180180247:android:f796bf9145dda2196cd352",
+        "android_client_info": {
+          "package_name": "mx.aro.atizaapp_equipo1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1088180180247-7hukms2csmf8kbvt3ejlln21cotuu4hi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "mx.aro.atizaapp_equipo1",
+            "certificate_hash": "c112f82411059dedd48795f4929256153799b608"
+          }
+        },
+        {
+          "client_id": "1088180180247-oadie00adt118ue9gtpfupfeog2v7v8j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIvQ2co_2JFnR1oJrzOLaPKUrITVMFuY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1088180180247-oadie00adt118ue9gtpfupfeog2v7v8j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
