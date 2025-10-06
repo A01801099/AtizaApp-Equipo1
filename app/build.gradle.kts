@@ -63,6 +63,16 @@ dependencies {
     implementation(libs.androidx.ui.unit)
     testImplementation(libs.junit)
 
+
+
+
+    // zxing scanner
+    implementation (libs.zxing.android.embedded)
+
+    // Permisos
+    implementation (libs.accompanist.permissions)
+
+
     // Agregar retrofit y json
     implementation(libs.retrofitLib)
     implementation(libs.gsonLib)
@@ -73,6 +83,7 @@ dependencies {
 
     // Dependencia de Google Play Services
     implementation(libs.play.services.code.scanner)
+
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

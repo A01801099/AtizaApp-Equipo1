@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -171,7 +172,7 @@ fun BottomNavigationBar() {
             onClick = { /* Navegar a Explorar */ }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = "Mi credencial") },
+            icon = { Icon(Icons.Default.CardMembership, contentDescription = "Mi credencial") },
             label = { Text("Mi credencial") },
             selected = false,
             onClick = { /* Navegar a Mi credencial */ }
