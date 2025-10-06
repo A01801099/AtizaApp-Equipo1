@@ -46,12 +46,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import mx.aro.atizaapp_equipo1.R
 import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
+import mx.aro.atizaapp_equipo1.view.screens.CodigoQRCredencialScreen
+import mx.aro.atizaapp_equipo1.view.screens.ContactoScreen
+import mx.aro.atizaapp_equipo1.view.screens.MiCredencialScreen
 
 
 data class Comercio(
@@ -66,7 +70,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AtizaAppEquipo1Theme {
-                ExplorarComerciosScreen()
+                val navController = rememberNavController()
+                Scaffold(
+                    bottomBar = { BottomNavigationBar(navController) }
+                ) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = "explorar",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable("explorar") { ExplorarComerciosScreen() }
+                        composable("contacto") { ContactoScreen() }
+                        composable("mi_credencial") { MiCredencialScreen(navController) }
+                        composable("codigo_qr_credencial") { CodigoQRCredencialScreen(navController) }
+                    }
+                }
             }
         }
     }
@@ -98,9 +116,6 @@ fun ExplorarComerciosScreen() {
                     .padding(8.dp)
             )
         },
-        bottomBar = {
-            BottomNavigationBar()
-        }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             // Botones de categorías
@@ -163,25 +178,42 @@ fun ComercioItem(comercio: Comercio) {
 }
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(navController: NavHostController) {
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
     NavigationBar {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Explorar") },
             label = { Text("Explorar") },
-            selected = true,
-            onClick = { /* Navegar a Explorar */ }
+            selected = currentRoute == "explorar",
+            onClick = {
+                navController.navigate("explorar") {
+                    popUpTo("explorar") { inclusive = false }
+                    launchSingleTop = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.CardMembership, contentDescription = "Mi credencial") },
             label = { Text("Mi credencial") },
-            selected = false,
-            onClick = { /* Navegar a Mi credencial */ }
+            selected = currentRoute == "mi_credencial", // ✅ coincide con NavHost
+            onClick = {
+                navController.navigate("mi_credencial") { // ✅ coincide con NavHost
+                    popUpTo("explorar") { inclusive = false }
+                    launchSingleTop = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Call, contentDescription = "Contáctanos") },
             label = { Text("Contáctanos") },
-            selected = false,
-            onClick = { /* Navegar a Contacto */ }
+            selected = currentRoute == "contacto",
+            onClick = {
+                navController.navigate("contacto") {
+                    popUpTo("explorar") { inclusive = false }
+                    launchSingleTop = true
+                }
+            }
         )
     }
 }
