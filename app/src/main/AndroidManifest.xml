@@ -30,6 +30,11 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.AtizaAppEquipo1"/>
 
+        <!-- Meta data necesaria para usar la Api de google -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode_ui"/>
+
     </application>
 
 </manifest>

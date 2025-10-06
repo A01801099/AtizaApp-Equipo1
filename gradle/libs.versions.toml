@@ -20,8 +20,10 @@ uiUnit = "1.9.2"
 retrofitVer = "3.0.0"
 gsonVer = "3.0.0"
 coilComposeVersion = "3.3.0"
+playServicesCodeScanner = "16.1.0"
 
 [libraries]
+play-services-code-scanner = { module = "com.google.android.gms:play-services-code-scanner", version.ref = "playServicesCodeScanner" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilComposeVersion" }
 coil3-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilComposeVersion" }
 gsonLib = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "gsonVer" }
