@@ -62,6 +62,15 @@ dependencies {
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.ui.unit)
     testImplementation(libs.junit)
+
+    // Agregar retrofit y json
+    implementation(libs.retrofitLib)
+    implementation(libs.gsonLib)
+
+    // Agregar coil
+    implementation(libs.coil3.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

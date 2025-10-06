@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="mx.aro.atizaapp_equipo1" />
+                  <option name="mobileSdkAppId" value="1:1088180180247:android:f796bf9145dda2196cd352" />
+                  <option name="projectId" value="atizaapp" />
+                  <option name="projectNumber" value="1088180180247" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
