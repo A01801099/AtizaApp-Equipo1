@@ -7,6 +7,11 @@
         android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- 🗺️ Permisos opcionales si planeas usar ubicación -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+
     <application
         android:hardwareAccelerated="true"
         android:allowBackup="true"
@@ -46,6 +51,10 @@
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="barcode_ui"/>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAy6Dby-BqQA8b6pWGhpOodiImDCycwCIs" />
 
     </application>
 
