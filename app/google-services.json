@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1088180180247-0lkrfa0rgjcta3n1mpknlj0js432nmjm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "mx.aro.atizaapp_equipo1",
+            "certificate_hash": "6ac9777395cc8f5a081b739b42b60e9691a5af45"
+          }
+        },
+        {
           "client_id": "1088180180247-7hukms2csmf8kbvt3ejlln21cotuu4hi.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
