@@ -1,26 +1,25 @@
 package mx.aro.atizaapp_equipo1.view.screens
-
+import mx.aro.atizaapp_equipo1.R
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,14 +54,15 @@ fun MiCredencialScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-
-            // Aquí puedes agregar tu imagen de credencial
-            // Ejemplo temporal:
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Aquí irá la imagen de tu credencial",
-                fontSize = 14.sp,
-                color = Color.Gray
+
+            // Imagen de la credencial
+            Image(
+                painter = painterResource(id = R.drawable.tarjeta_beneficio_joven),
+                contentDescription = "Imagen de la credencial",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -91,21 +91,7 @@ fun MiCredencialScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Aquí puedes poner una imagen genérica
-            Text(text = "Imagen genérica", color = Color.Gray)
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = { /* No hace nada por ahora */ },
-                shape = MaterialTheme.shapes.medium,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
-                )
-            ) {
-                Text("Cambiar imagen")
-            }
         }
     }
 }

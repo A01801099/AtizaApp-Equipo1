@@ -44,26 +44,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import mx.aro.atizaapp_equipo1.R
 import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
-
+// MODELO
 data class Comercio(
     val nombre: String,
     val descripcion: String,
     val imagenRes: Int
 )
 
+// --------- PANTALLA EXPLORAR COMERCIOS ---------
 @Composable
-fun ExplorarComerciosScreen(appVM: AppVM = AppVM()) {
-
+fun ExplorarComerciosScreen(
+    appVM: AppVM = AppVM(),
+    navController: NavHostController
+) {
     val context = LocalContext.current
 
     var searchText by remember { mutableStateOf("") }
     val categorias = listOf("Todos", "Restaurantes", "Servicios", "Tiendas")
 
-    // Mock de comercios
     val comercios = listOf(
         Comercio("Café Aroma", "Café y postres deliciosos", R.drawable.ic_launcher_foreground),
         Comercio("Ferretería López", "Todo para tu hogar", R.drawable.ic_launcher_foreground),
@@ -84,14 +90,8 @@ fun ExplorarComerciosScreen(appVM: AppVM = AppVM()) {
                     .padding(8.dp)
             )
         },
-        bottomBar = {
-            BottomNavigationBar()
-            ElevatedButton(onClick = {
-                appVM.hacerLogout(context)
-            }) {
-                Text("Logout")
-            }
-        }
+
+
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             // Botones de categorías
@@ -105,15 +105,20 @@ fun ExplorarComerciosScreen(appVM: AppVM = AppVM()) {
                         onClick = { selectedCategoria = categoria },
                         modifier = Modifier.padding(end = 8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedCategoria == categoria) Color.Gray else MaterialTheme.colorScheme.primary
+                            containerColor = if (selectedCategoria == categoria)
+                                Color.Gray else MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Text(categoria, color = Color.White)
                     }
                 }
             }
-
-            // Lista de comercios filtrada por búsqueda
+            ElevatedButton(onClick = {
+                appVM.hacerLogout(context)
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text("Logout")
+            }
+            // Lista filtrada
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp),
@@ -121,12 +126,16 @@ fun ExplorarComerciosScreen(appVM: AppVM = AppVM()) {
             ) {
                 val filtered = comercios.filter {
                     it.nombre.contains(searchText, ignoreCase = true)
-                            && (selectedCategoria == "Todos" || it.descripcion.contains(selectedCategoria, ignoreCase = true))
+                            && (selectedCategoria == "Todos" ||
+                            it.descripcion.contains(selectedCategoria, ignoreCase = true))
                 }
                 items(filtered) { comercio ->
                     ComercioItem(comercio)
                 }
             }
+
+
+
         }
     }
 }
@@ -136,7 +145,7 @@ fun ComercioItem(comercio: Comercio) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Aquí irá la navegación a detalles */ },
+            .clickable { /* Navegar a detalles más adelante */ },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Row(modifier = Modifier.padding(8.dp)) {
@@ -153,34 +162,40 @@ fun ComercioItem(comercio: Comercio) {
     }
 }
 
+// --------- NAVIGATION BAR ---------
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(navController: NavHostController) {
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
     NavigationBar {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Explorar") },
             label = { Text("Explorar") },
-            selected = true,
-            onClick = { /* Navegar a Explorar */ }
+            selected = currentRoute == "explorar",
+            onClick = { navController.navigate("explorar") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.CardMembership, contentDescription = "Mi credencial") },
             label = { Text("Mi credencial") },
-            selected = false,
-            onClick = { /* Navegar a Mi credencial */ }
+            selected = currentRoute == "mi_credencial",
+            onClick = { navController.navigate("mi_credencial") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Call, contentDescription = "Contáctanos") },
             label = { Text("Contáctanos") },
-            selected = false,
-            onClick = { /* Navegar a Contacto */ }
+            selected = currentRoute == "contacto",
+            onClick = { navController.navigate("contacto") }
         )
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun ExplorarComerciosPreview() {
+    val fakeNavController = rememberNavController()
     AtizaAppEquipo1Theme {
-        ExplorarComerciosScreen()
+        ExplorarComerciosScreen(appVM = AppVM(),
+            navController = fakeNavController)
     }
 }

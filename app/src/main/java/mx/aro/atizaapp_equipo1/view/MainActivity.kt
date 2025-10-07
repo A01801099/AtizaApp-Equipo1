@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AtizaAppEquipo1Theme {
-                AppNavHost(viewModel)
+                AppNavHost(appVM = viewModel)
             }
         }
     }
