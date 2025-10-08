@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +43,8 @@ fun DetalleComercioScreen(navController: NavHostController) {
         position = CameraPosition.fromLatLngZoom(juventudLocation, 15f)
     }
 
+    val scrollState = rememberScrollState()
+
     // 🏪 Datos de ejemplo del comercio
     val nombreComercio = "Cafetería Central"
     val descripcionComercio =
@@ -50,6 +54,7 @@ fun DetalleComercioScreen(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {
             // 🖼️ Imagen superior del comercio
@@ -135,6 +140,33 @@ fun DetalleComercioScreen(navController: NavHostController) {
                     )
                 }
             }
+
+            Text(
+                text = "¿Contáctanos?",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Teléfono: 55-16-68-17-48",
+                fontSize = 16.sp,
+                textAlign = TextAlign.Justify,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp))
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                "Dirección: Avenida del parque SN, " +
+                        " Jardines de Atizapán, Atizapán de Zaragoza",
+                fontSize = 16.sp,
+                textAlign = TextAlign.Justify,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
         }
     }
 }
