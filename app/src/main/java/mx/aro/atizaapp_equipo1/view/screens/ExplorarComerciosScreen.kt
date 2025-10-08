@@ -44,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -130,7 +129,7 @@ fun ExplorarComerciosScreen(
                             it.descripcion.contains(selectedCategoria, ignoreCase = true))
                 }
                 items(filtered) { comercio ->
-                    ComercioItem(comercio)
+                    ComercioItem(comercio, navController)
                 }
             }
 
@@ -141,11 +140,11 @@ fun ExplorarComerciosScreen(
 }
 
 @Composable
-fun ComercioItem(comercio: Comercio) {
+fun ComercioItem(comercio: Comercio,navController: NavHostController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Navegar a detalles más adelante */ },
+            .clickable { navController.navigate("explorar_comercio") },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Row(modifier = Modifier.padding(8.dp)) {

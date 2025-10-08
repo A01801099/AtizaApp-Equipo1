@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import mx.aro.atizaapp_equipo1.view.screens.BottomNavigationBar
 import mx.aro.atizaapp_equipo1.view.screens.CodigoQRCredencialScreen
 import mx.aro.atizaapp_equipo1.view.screens.ContactoScreen
+import mx.aro.atizaapp_equipo1.view.screens.DetalleComercioScreen
 import mx.aro.atizaapp_equipo1.view.screens.ExplorarComerciosScreen
 import mx.aro.atizaapp_equipo1.view.screens.LoginScreen
 import mx.aro.atizaapp_equipo1.view.screens.MiCredencialScreen
@@ -31,7 +32,8 @@ fun AppNavHost(appVM: AppVM) {
         "explorar",
         "mi_credencial",
         "contacto",
-        "codigo_qr_credencial"
+        "codigo_qr_credencial",
+        "explorar_comercio"
     )
 
     Scaffold(
@@ -69,6 +71,9 @@ fun AppNavHost(appVM: AppVM) {
             }
             composable("codigo_qr_credencial") {
                 CodigoQRCredencialScreen(navController = navController)
+            }
+            composable("explorar_comercio"){
+                DetalleComercioScreen(navController = navController)
             }
         }
     }
