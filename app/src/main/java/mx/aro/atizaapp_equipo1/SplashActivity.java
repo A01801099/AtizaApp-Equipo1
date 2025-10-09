@@ -13,7 +13,7 @@ import mx.aro.atizaapp_equipo1.view.MainActivity;
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
 
-    private static final int DURACION_SPLASH = 3000; // 3 segundos
+    private static final int DURACION_SPLASH = 1000; // 3 segundos
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
