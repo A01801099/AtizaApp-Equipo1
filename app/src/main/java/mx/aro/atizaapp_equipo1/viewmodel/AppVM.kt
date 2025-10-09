@@ -18,6 +18,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import mx.aro.atizaapp_equipo1.model.ApiClient
+import mx.aro.atizaapp_equipo1.model.CreateAccountRequest
+import mx.aro.atizaapp_equipo1.model.CreateAccountResponse
 import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
 
 // Data class para representar el estado de la UI de autenticación
@@ -30,6 +33,9 @@ data class AuthState(
 )
 
 class AppVM: ViewModel() {
+
+    //API-ATIZAAP-API
+    private val api = ApiClient.service
 
     private val auth: FirebaseAuth = Firebase.auth
 
@@ -140,5 +146,34 @@ class AppVM: ViewModel() {
             .requestEmail()
             .build()
         GoogleSignIn.getClient(context, gso).signOut()
+    }
+
+    fun createAccount(
+        curp: String,
+        fechaNacimiento: String,
+        entidadRegistro: String,
+        onSuccess: (CreateAccountResponse) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                // (Opcional) toma el email localmente, aunque el backend usa el del token
+                val email = auth.currentUser?.email
+
+                val body = CreateAccountRequest(
+                    curp = curp,
+                    nacimiento = fechaNacimiento,
+                    entidadRegistro = entidadRegistro,
+                    username = email ?: "",
+                    correo = email!!,
+                    nombre = auth.currentUser?.displayName ?: ""
+                )
+
+                val response = api.createAccount(body)
+                onSuccess(response)
+            } catch (e: Exception) {
+                onError(e)
+            }
+        }
     }
 }

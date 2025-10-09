@@ -1,5 +1,6 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -117,6 +118,23 @@ fun ExplorarComerciosScreen(
             }, modifier = Modifier.fillMaxWidth()) {
                 Text("Logout")
             }
+            Button(
+                onClick = {
+                    appVM.createAccount(
+                        curp = "EELG050828HMCSNBA07",
+                        fechaNacimiento = "2025-08-28",
+                        entidadRegistro = "MEXICO",
+                        onSuccess = { res ->
+                            println("Success: $res")
+                        },
+                        onError = { err ->
+                            println("Error: $err")
+                        }
+                    )
+                }
+            ) {
+                Text("Crear cuenta")
+            }
             // Lista filtrada
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -189,6 +207,7 @@ fun BottomNavigationBar(navController: NavHostController) {
 }
 
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun ExplorarComerciosPreview() {
