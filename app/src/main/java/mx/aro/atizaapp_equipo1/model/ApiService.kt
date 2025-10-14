@@ -8,11 +8,12 @@ import okhttp3.OkHttpClient
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.FieldNamingPolicy
+import retrofit2.http.GET
+import retrofit2.http.Query
 
 //TODO DATA CLASES EN OTRO ARCHIVO
 // Lo que tu API espera según CreateAccountSchema
 data class CreateAccountRequest(
-    val username: String,          // ✅ requerido
     val correo: String,            // ✅ requerido (usa el email de Firebase)
     val nombre: String,            // ✅ requerido
     val nacimiento: String,        // ✅ "YYYY-MM-DD"
@@ -26,18 +27,20 @@ data class CreateAccountResponse(
 )
 
 data class Usuario(
-    val id: Long,                  // auto_increment → usa Long por seguridad
-    val username: String,
+    val id: Int,                  // auto_increment → usa Long por seguridad
     val correo: String,
     val nombre: String,
     val nacimiento: String,        // mantenlo como String por API 24
     val pais: String,              // "MEXICO" (según tu backend)
     val curp: String
 )
-
 interface ApiService {
     @POST("/credencial")
     suspend fun createAccount(@Body body: CreateAccountRequest): CreateAccountResponse
+
+    // ASÍ DEBE QUEDAR:
+    @GET("/credencial/me") // Asegúrate de que la ruta sea la correcta para tu API
+    suspend fun getMe(@Query("email") email: String): Usuario
 }
 
 private fun provideGson(): Gson =

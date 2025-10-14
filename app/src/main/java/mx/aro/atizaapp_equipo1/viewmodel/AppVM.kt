@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -22,6 +23,7 @@ import mx.aro.atizaapp_equipo1.model.ApiClient
 import mx.aro.atizaapp_equipo1.model.CreateAccountRequest
 import mx.aro.atizaapp_equipo1.model.CreateAccountResponse
 import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
+import mx.aro.atizaapp_equipo1.model.Usuario
 
 // Data class para representar el estado de la UI de autenticación
 data class AuthState(
@@ -46,6 +48,10 @@ class AppVM: ViewModel() {
     private val _authState = MutableStateFlow(AuthState())
     val authState = _authState.asStateFlow()
 
+    private val _tieneCredencial = MutableStateFlow(false)
+    val tieneCredencial : StateFlow<Boolean> = _tieneCredencial.asStateFlow()
+
+
 
     init {
         auth.currentUser?.reload()?.addOnCompleteListener {
@@ -56,7 +62,7 @@ class AppVM: ViewModel() {
     fun clearAuthState() {
         _authState.value = AuthState()
     }
-    
+
     fun hacerLoginGoogle(credencial: AuthCredential) {
         viewModelScope.launch {
             _authState.update { it.copy(isLoading = true) }
@@ -160,12 +166,15 @@ class AppVM: ViewModel() {
                 // (Opcional) toma el email localmente, aunque el backend usa el del token
                 val email = auth.currentUser?.email
 
+                if(email == null){
+                    throw Exception("Email no encontrado")
+                }
+                //IF !EMAIL Y NOMBRE
                 val body = CreateAccountRequest(
                     curp = curp,
                     nacimiento = fechaNacimiento,
                     entidadRegistro = entidadRegistro,
-                    username = email ?: "",
-                    correo = email!!,
+                    correo = email,
                     nombre = auth.currentUser?.displayName ?: ""
                 )
 
@@ -176,4 +185,28 @@ class AppVM: ViewModel() {
             }
         }
     }
+
+    fun getMe(
+        onSuccess: (response: Usuario) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val email = auth.currentUser?.email
+
+                if (email == null) {
+                    throw Exception("Email no encontrado")
+                }
+
+                // AHORA LA LLAMADA ES MÁS SIMPLE:
+                val response = api.getMe(email) // Ya no se crea el objeto getMeRequest
+
+                onSuccess(response)
+            } catch (e: Exception) {
+                onError(e)
+                Log.e("AppVM", "Error al obtener datos del usuario", e)
+            }
+        }
+    }
+
 }
