@@ -32,7 +32,8 @@ import java.util.*
 @Composable
 fun CreateCredentialScreen(
     appVM: AppVM,
-    onCredentialCreated: () -> Unit,
+    onDone: () -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val purple = Color(0xFF5B2DCC)
@@ -286,13 +287,27 @@ fun CreateCredentialScreen(
                                 Toast.makeText(context, "Selecciona una fecha de nacimiento", Toast.LENGTH_SHORT).show()
                             }
                             else -> {
-                                // TODO: Llamar al ViewModel para crear la credencial
-                                // appVM.crearCredencial(curp, nombre, apellidoPaterno, apellidoMaterno, entidadRegistro, fechaNacimiento)
-                                Toast.makeText(
-                                    context,
-                                    "Funcionalidad de creación pendiente de implementar en el ViewModel",
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                // Llamar al ViewModel para crear la cuenta
+                                appVM.createAccount(
+                                    curp = curp,
+                                    fechaNacimiento = fechaNacimiento,
+                                    entidadRegistro = entidadRegistro,
+                                    onSuccess = { response ->
+                                        Toast.makeText(
+                                            context,
+                                            "Cuenta creada exitosamente",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        onDone()
+                                    },
+                                    onError = { error ->
+                                        Toast.makeText(
+                                            context,
+                                            "Error al crear la cuenta: ${error.message}",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                )
                             }
                         }
                     },

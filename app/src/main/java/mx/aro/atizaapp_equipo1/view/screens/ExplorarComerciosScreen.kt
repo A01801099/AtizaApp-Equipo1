@@ -1,7 +1,6 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
 import android.annotation.SuppressLint
-import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -18,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -121,7 +121,7 @@ fun ExplorarComerciosScreen(
             Button(
                 onClick = {
                     appVM.createAccount(
-                        curp = "EELG050828HMCSNBA07",
+                        curp = "EELG050828HMCSNBA7",
                         fechaNacimiento = "2025-08-28",
                         entidadRegistro = "MEXICO",
                         onSuccess = { res ->
@@ -150,9 +150,6 @@ fun ExplorarComerciosScreen(
                     ComercioItem(comercio, navController)
                 }
             }
-
-
-
         }
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,11 +26,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MiCredencialScreen(navController: NavHostController) {
+fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -91,6 +93,18 @@ fun MiCredencialScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            Button(onClick = {
+                appVM.getMe(
+                    onSuccess = { response ->
+                        println("Success: $response")
+                    },
+                    onError = {
+                        println("Error: $it")
+                    }
+                )
+            }) {
+                Text("Obtener datos de mi credencial")
+            }
 
         }
     }

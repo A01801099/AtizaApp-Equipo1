@@ -9,15 +9,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import mx.aro.atizaapp_equipo1.view.screens.MiCredencialScreen
 import mx.aro.atizaapp_equipo1.view.screens.BottomNavigationBar
 import mx.aro.atizaapp_equipo1.view.screens.CodigoQRCredencialScreen
 import mx.aro.atizaapp_equipo1.view.screens.ContactoScreen
 import mx.aro.atizaapp_equipo1.view.screens.DetalleComercioScreen
 import mx.aro.atizaapp_equipo1.view.screens.ExplorarComerciosScreen
 import mx.aro.atizaapp_equipo1.view.screens.LoginScreen
-import mx.aro.atizaapp_equipo1.view.screens.MiCredencialScreen
 import mx.aro.atizaapp_equipo1.view.screens.RegisterScreen
+import mx.aro.atizaapp_equipo1.view.screens.CreateCredentialScreen // <-- crea esta pantalla
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
+
 @Composable
 fun AppNavHost(appVM: AppVM) {
     val navController = rememberNavController()
@@ -48,6 +50,7 @@ fun AppNavHost(appVM: AppVM) {
             startDestination = if (estaLoggeado) "explorar" else "login",
             modifier = Modifier.padding(innerPadding)
         ) {
+            // AUTH
             composable("login") {
                 LoginScreen(
                     appVM = appVM,
@@ -60,11 +63,25 @@ fun AppNavHost(appVM: AppVM) {
                     onLoginClick = { navController.navigate("login") }
                 )
             }
+
+            // ONBOARDING: registro de credencial obligatorio
+            composable("register_credencial") {
+                CreateCredentialScreen(
+                    appVM = appVM,
+                    onDone = {
+                        navController.navigate("explorar")
+                    },
+                    onCancel = {
+                        println("El usuario canceló la creación de la credencial")
+                    }
+                )
+            }
+            // MAIN
             composable("explorar") {
                 ExplorarComerciosScreen(appVM = appVM, navController = navController)
             }
             composable("mi_credencial") {
-                MiCredencialScreen(navController = navController)
+                MiCredencialScreen(navController = navController, appVM = appVM)
             }
             composable("contacto") {
                 ContactoScreen(navController = navController)
