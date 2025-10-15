@@ -7,7 +7,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.OkHttpClient
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.FieldNamingPolicy
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -31,7 +30,7 @@ data class Usuario(
     val correo: String,
     val nombre: String,
     val nacimiento: String,        // mantenlo como String por API 24
-    val pais: String,              // "MEXICO" (según tu backend)
+    val estado: String,              // "MEXICO" (según tu backend)
     val curp: String
 )
 interface ApiService {

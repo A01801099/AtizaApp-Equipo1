@@ -34,6 +34,13 @@ data class AuthState(
     val registrationComplete: Boolean = false
 )
 
+// Data class para representar el estado de la pantalla de la credencial
+data class CredencialState(
+    val isLoading: Boolean = false,
+    val usuario: Usuario? = null,
+    val error: String? = null
+)
+
 class AppVM: ViewModel() {
 
     //API-ATIZAAP-API
@@ -47,6 +54,11 @@ class AppVM: ViewModel() {
     // Nuevo StateFlow para manejar el estado de la UI de autenticación
     private val _authState = MutableStateFlow(AuthState())
     val authState = _authState.asStateFlow()
+
+    // Nuevo StateFlow para manejar el estado de la credencial del usuario
+    private val _credencialState = MutableStateFlow(CredencialState())
+    val credencialState = _credencialState.asStateFlow()
+
 
     private val _tieneCredencial = MutableStateFlow(false)
     val tieneCredencial : StateFlow<Boolean> = _tieneCredencial.asStateFlow()
@@ -163,19 +175,24 @@ class AppVM: ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                // (Opcional) toma el email localmente, aunque el backend usa el del token
                 val email = auth.currentUser?.email
+                val nombre = auth.currentUser?.displayName
+
 
                 if(email == null){
                     throw Exception("Email no encontrado")
                 }
-                //IF !EMAIL Y NOMBRE
+
+                if(nombre == null){
+                    throw Exception("Nombre no encontrado")
+                }
+
                 val body = CreateAccountRequest(
                     curp = curp,
                     nacimiento = fechaNacimiento,
                     entidadRegistro = entidadRegistro,
                     correo = email,
-                    nombre = auth.currentUser?.displayName ?: ""
+                    nombre = nombre
                 )
 
                 val response = api.createAccount(body)
@@ -186,27 +203,21 @@ class AppVM: ViewModel() {
         }
     }
 
-    fun getMe(
-        onSuccess: (response: Usuario) -> Unit,
-        onError: (Throwable) -> Unit
-    ) {
+    fun getMe() {
         viewModelScope.launch {
+            _credencialState.update { it.copy(isLoading = true, error = null) }
             try {
                 val email = auth.currentUser?.email
 
                 if (email == null) {
-                    throw Exception("Email no encontrado")
+                    throw Exception("Usuario no autenticado.")
                 }
-
-                // AHORA LA LLAMADA ES MÁS SIMPLE:
-                val response = api.getMe(email) // Ya no se crea el objeto getMeRequest
-
-                onSuccess(response)
+                val response = api.getMe(email)
+                _credencialState.update { it.copy(isLoading = false, usuario = response) }
             } catch (e: Exception) {
-                onError(e)
                 Log.e("AppVM", "Error al obtener datos del usuario", e)
+                _credencialState.update { it.copy(isLoading = false, error = "Error al obtener los datos: ${e.message}") }
             }
         }
     }
-
 }

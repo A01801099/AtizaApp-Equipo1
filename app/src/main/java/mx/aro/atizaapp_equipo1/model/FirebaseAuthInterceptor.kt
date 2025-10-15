@@ -23,12 +23,18 @@ class FirebaseAuthInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
 
+        // 1️⃣ Obtener token (usa caché si es válido)
         val token = runBlocking(Dispatchers.IO) { idToken(false) }
+
+        // 2️⃣ Agregar header Authorization
         val withAuth = if (token != null)
             original.newBuilder().addHeader("Authorization", "Bearer $token").build()
         else original
 
+        // 3️⃣ Hacer request
         var resp = chain.proceed(withAuth)
+
+        // 4️⃣ Si es 401, refrescar token directo con Firebase y reintentar
         if (resp.code == 401) {
             resp.close()
             val refreshed = runBlocking(Dispatchers.IO) { idToken(true) }
@@ -40,3 +46,8 @@ class FirebaseAuthInterceptor(
         return resp
     }
 }
+
+// **Esto maneja automáticamente:**
+//- Agregar token a todas las requests
+//- Refresh automático en caso de 401
+//- Retry automático con nuevo token

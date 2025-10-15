@@ -46,6 +46,9 @@ fun AppNavHost(appVM: AppVM) {
         }
     ) { innerPadding ->
         NavHost(
+
+            //Todo mostrar la pantalla de ce crearCredencial despues de estar loggeado y si y solo si se tiene credencial se pasa a ala pantallad e explorar comercios
+            //usar tiene_credencial
             navController = navController,
             startDestination = if (estaLoggeado) "explorar" else "login",
             modifier = Modifier.padding(innerPadding)
