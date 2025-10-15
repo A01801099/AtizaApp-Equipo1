@@ -68,7 +68,7 @@ fun ExplorarComerciosScreen(
     val context = LocalContext.current
 
     var searchText by remember { mutableStateOf("") }
-    val categorias = listOf("Todos", "Restaurantes", "Servicios", "Tiendas")
+    val categorias = listOf("Todos", "Entretenimiento", "Comida", "Salud","Belleza","Educación","Moda y Accesorios","Servicios")
 
     val comercios = listOf(
         Comercio("Café Aroma", "Café y postres deliciosos", R.drawable.ic_launcher_foreground),
