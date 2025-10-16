@@ -60,7 +60,7 @@ fun provideApi(): ApiService {
     val gson = provideGson()
 
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:3000/")
+        .baseUrl("https://node-api-atizapp.onrender.com/")
         .client(client)
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
