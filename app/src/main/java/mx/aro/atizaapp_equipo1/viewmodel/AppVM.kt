@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import mx.aro.atizaapp_equipo1.model.ApiClient
 import mx.aro.atizaapp_equipo1.model.CreateAccountRequest
 import mx.aro.atizaapp_equipo1.model.CreateAccountResponse
+import mx.aro.atizaapp_equipo1.model.Negocio
+import mx.aro.atizaapp_equipo1.model.NegociosApiResponse
 import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
 import mx.aro.atizaapp_equipo1.model.Usuario
 
@@ -41,6 +43,16 @@ data class CredencialState(
     val error: String? = null
 )
 
+// Data class para el estado de la lista de negocios con paginación por cursor
+data class NegociosState(
+    val isLoadingInitial: Boolean = false, // Carga de pantalla completa la primera vez
+    val isLoadingMore: Boolean = false,    // Spinner al final de la lista para paginación
+    val negocios: List<Negocio> = emptyList(),
+    val error: String? = null,
+    val nextCursor: String? = null,        // Cursor para la siguiente página. Nulo para la primera llamada.
+    val endReached: Boolean = false        // true si la API devuelve un cursor nulo
+)
+
 class AppVM: ViewModel() {
 
     //API-ATIZAAP-API
@@ -58,7 +70,10 @@ class AppVM: ViewModel() {
     // Nuevo StateFlow para manejar el estado de la credencial del usuario
     private val _credencialState = MutableStateFlow(CredencialState())
     val credencialState = _credencialState.asStateFlow()
-
+    
+    // StateFlow para la lista de negocios
+    private val _negociosState = MutableStateFlow(NegociosState())
+    val negociosState = _negociosState.asStateFlow()
 
     private val _tieneCredencial = MutableStateFlow(false)
     val tieneCredencial : StateFlow<Boolean> = _tieneCredencial.asStateFlow()
@@ -217,6 +232,53 @@ class AppVM: ViewModel() {
             } catch (e: Exception) {
                 Log.e("AppVM", "Error al obtener datos del usuario", e)
                 _credencialState.update { it.copy(isLoading = false, error = "Error al obtener los datos: ${e.message}") }
+            }
+        }
+    }
+    
+    fun loadNextPageOfNegocios() {
+        viewModelScope.launch {
+            val currentState = _negociosState.value
+            // Evita hacer llamadas si ya se está cargando o si se llegó al final
+            if (currentState.isLoadingInitial || currentState.isLoadingMore || currentState.endReached) {
+                return@launch
+            }
+
+            // Determina si es la carga inicial para mostrar el indicador de carga apropiado
+            val isInitialLoad = currentState.negocios.isEmpty()
+            if (isInitialLoad) {
+                _negociosState.update { it.copy(isLoadingInitial = true, error = null) }
+            } else {
+                _negociosState.update { it.copy(isLoadingMore = true, error = null) }
+            }
+
+            try {
+                // NOTA: Asegúrate de que tu ApiService.getNegocios() acepte un cursor (String?)
+                // y devuelva un objeto NegociosApiResponse(val negocios: List<Negocio>, val nextCursor: String?).
+                val response = api.getNegocios(cursor = currentState.nextCursor)
+                println("Negocios recibidos de la API: ${response.items}")
+
+                _negociosState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        isLoadingMore = false,
+                        // Añade los nuevos negocios a la lista existente
+                        negocios = it.negocios + response.items,
+                        // Actualiza el cursor para la siguiente llamada
+                        nextCursor = response.nextCursor,
+                        // Si el nuevo cursor es nulo, hemos llegado al final
+                        endReached = response.nextCursor == null
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("AppVM", "Error al cargar negocios", e)
+                _negociosState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        isLoadingMore = false,
+                        error = "Error al cargar los negocios: ${e.message}"
+                    )
+                }
             }
         }
     }

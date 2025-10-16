@@ -12,7 +12,7 @@ import retrofit2.http.Query
 
 //TODO DATA CLASES EN OTRO ARCHIVO
 // Lo que tu API espera según CreateAccountSchema
-data class CreateAccountRequest(
+data class CreateAccountRequest (
     val correo: String,            // ✅ requerido (usa el email de Firebase)
     val nombre: String,            // ✅ requerido
     val nacimiento: String,        // ✅ "YYYY-MM-DD"
@@ -20,12 +20,12 @@ data class CreateAccountRequest(
     val entidadRegistro: String,   // ✅ "AGUASCALIENTES"
 )
 
-data class CreateAccountResponse(
+data class CreateAccountResponse (
     val ok: Boolean,
     val usuario: Usuario
 )
 
-data class Usuario(
+data class Usuario (
     val id: Int,                  // auto_increment → usa Long por seguridad
     val correo: String,
     val nombre: String,
@@ -33,6 +33,25 @@ data class Usuario(
     val estado: String,              // "MEXICO" (según tu backend)
     val curp: String
 )
+
+data class NegociosApiResponse(
+    val items: List<Negocio>,
+    val nextCursor: String?
+)
+
+data class Negocio (
+    val id: Int,
+    val usuarioId : Int,
+    val nombre: String,
+    val tipo: String,
+    val ubicacion: String,
+    val calificacion: String,
+    val telefono: String,
+    val imagen: String,
+    val email: String,
+    val descripcion: String
+)
+
 interface ApiService {
     @POST("/credencial")
     suspend fun createAccount(@Body body: CreateAccountRequest): CreateAccountResponse
@@ -40,6 +59,14 @@ interface ApiService {
     // ASÍ DEBE QUEDAR:
     @GET("/credencial/me") // Asegúrate de que la ruta sea la correcta para tu API
     suspend fun getMe(@Query("email") email: String): Usuario
+
+    @GET("/negocios")
+    suspend fun getNegocios(
+        @Query("limit") limit: Int? = null,
+        @Query("q") q: String? = null,
+        @Query("cursor") cursor: String? = null
+    ): NegociosApiResponse
+
 }
 
 private fun provideGson(): Gson =

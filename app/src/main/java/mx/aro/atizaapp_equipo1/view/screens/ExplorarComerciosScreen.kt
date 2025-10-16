@@ -135,6 +135,11 @@ fun ExplorarComerciosScreen(
             ) {
                 Text("Crear cuenta")
             }
+            ElevatedButton(onClick = {
+                appVM.loadNextPageOfNegocios()
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text("Cargar negocios")
+            }
             // Lista filtrada
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
