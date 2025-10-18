@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import mx.aro.atizaapp_equipo1.view.screens.AjustesScreen
 import mx.aro.atizaapp_equipo1.view.screens.MiCredencialScreen
 import mx.aro.atizaapp_equipo1.view.screens.BottomNavigationBar
 import mx.aro.atizaapp_equipo1.view.screens.CodigoQRCredencialScreen
@@ -35,7 +36,8 @@ fun AppNavHost(appVM: AppVM) {
         "mi_credencial",
         "contacto",
         "codigo_qr_credencial",
-        "explorar_comercio"
+        "explorar_comercio",
+        "ajustes"
     )
 
     Scaffold(
@@ -94,6 +96,9 @@ fun AppNavHost(appVM: AppVM) {
             }
             composable("explorar_comercio"){
                 DetalleComercioScreen(navController = navController)
+            }
+            composable("ajustes"){
+                AjustesScreen(navController = navController, appVM = appVM)
             }
         }
     }

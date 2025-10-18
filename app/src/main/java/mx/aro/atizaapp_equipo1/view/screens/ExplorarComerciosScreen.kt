@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -62,8 +64,8 @@ data class Comercio(
 // --------- PANTALLA EXPLORAR COMERCIOS ---------
 @Composable
 fun ExplorarComerciosScreen(
-    appVM: AppVM = AppVM(),
-    navController: NavHostController
+    navController: NavHostController,
+    appVM: AppVM = viewModel()
 ) {
     val context = LocalContext.current
 
@@ -113,28 +115,7 @@ fun ExplorarComerciosScreen(
                     }
                 }
             }
-            ElevatedButton(onClick = {
-                appVM.hacerLogout(context)
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Logout")
-            }
-            Button(
-                onClick = {
-                    appVM.createAccount(
-                        curp = "EELG050828HMCSNBA7",
-                        fechaNacimiento = "2025-08-28",
-                        entidadRegistro = "MEXICO",
-                        onSuccess = { res ->
-                            println("Success: $res")
-                        },
-                        onError = { err ->
-                            println("Error: $err")
-                        }
-                    )
-                }
-            ) {
-                Text("Crear cuenta")
-            }
+
             ElevatedButton(onClick = {
                 appVM.loadNextPageOfNegocios()
             }, modifier = Modifier.fillMaxWidth()) {
@@ -205,8 +186,15 @@ fun BottomNavigationBar(navController: NavHostController) {
             selected = currentRoute == "contacto",
             onClick = { navController.navigate("contacto") }
         )
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes") },
+            label = { Text("Ajustes") },
+            selected = currentRoute == "ajustes",
+            onClick = { navController.navigate("ajustes") }
+        )
     }
 }
+
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -214,8 +202,8 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 fun ExplorarComerciosPreview() {
     val fakeNavController = rememberNavController()
+    val fakeViewModel = AppVM() // solo visual, permitido en Preview
     AtizaAppEquipo1Theme {
-        ExplorarComerciosScreen(appVM = AppVM(),
-            navController = fakeNavController)
+        ExplorarComerciosScreen(navController = fakeNavController, appVM = fakeViewModel)
     }
 }

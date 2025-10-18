@@ -10,15 +10,13 @@ import mx.aro.atizaapp_equipo1.view.navigation.AppNavHost
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 class MainActivity : ComponentActivity() {
-
     private val viewModel: AppVM by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             AtizaAppEquipo1Theme {
-                AppNavHost(appVM = viewModel)
+                AppNavHost(appVM = viewModel) // PASA el viewModel aquí
             }
         }
     }

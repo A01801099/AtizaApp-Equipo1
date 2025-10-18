@@ -135,12 +135,7 @@ private fun CredencialContentView(usuario: Usuario) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Text(
-            text = "Imagen del propietario",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+
 
         Spacer(modifier = Modifier.height(8.dp))
         // El botón de prueba ha sido eliminado, ya que la carga ahora es automática.
