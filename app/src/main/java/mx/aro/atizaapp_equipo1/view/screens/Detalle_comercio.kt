@@ -1,7 +1,6 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +41,7 @@ import com.google.maps.android.compose.*
 import com.google.android.gms.maps.model.LatLng
 import mx.aro.atizaapp_equipo1.R
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
+import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,10 +96,12 @@ fun DetalleComercioScreen(
                         .height(240.dp)
                 ) {
                     AsyncImage(
-                        model = negocio.imagen?.replace("/view?usp=drive_link", "") ?: "",
+                        model = convertGoogleDriveUrl(negocio.imagen),
                         contentDescription = negocio.nombre,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                        error = painterResource(R.drawable.ic_launcher_foreground)
                     )
 
                     IconButton(

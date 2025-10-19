@@ -58,6 +58,7 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import mx.aro.atizaapp_equipo1.R
 import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
+import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 // --------- PANTALLA EXPLORAR COMERCIOS (NEGOCIOS REALES) ---------
@@ -171,10 +172,11 @@ fun NegocioItem(negocio: mx.aro.atizaapp_equipo1.model.Negocio, navController: N
     ) {
         Row(modifier = Modifier.padding(8.dp)) {
             AsyncImage(
-                model = negocio.imagen?.replace("/view?usp=drive_link", "")
-                    ?: "https://via.placeholder.com/80",
+                model = convertGoogleDriveUrl(negocio.imagen),
                 contentDescription = negocio.nombre,
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(80.dp),
+                placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                error = painterResource(R.drawable.ic_launcher_foreground)
             )
             Column(modifier = Modifier.padding(start = 8.dp)) {
                 Text(negocio.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold)
