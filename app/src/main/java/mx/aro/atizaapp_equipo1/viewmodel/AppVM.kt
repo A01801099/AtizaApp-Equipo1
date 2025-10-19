@@ -44,6 +44,14 @@ data class CredencialState(
     val error: String? = null
 )
 
+// Data class para verificar SOLO la existencia de la credencial (para navegación)
+data class VerificationCredencialState(
+    val isLoading: Boolean = false,
+    val hasCredencial: Boolean = false,
+    val error: String? = null,
+    val isNetworkError: Boolean = false
+)
+
 // Data class para el estado de la lista de negocios con paginación por cursor
 data class NegociosState(
     val isLoadingInitial: Boolean = false, // Carga de pantalla completa la primera vez
@@ -68,20 +76,25 @@ class AppVM: ViewModel() {
     private val _authState = MutableStateFlow(AuthState())
     val authState = _authState.asStateFlow()
 
-    // Nuevo StateFlow para manejar el estado de la credencial del usuario
+    // Nuevo StateFlow para manejar el estado de la credencial del usuario (datos completos)
     private val _credencialState = MutableStateFlow(CredencialState())
     val credencialState = _credencialState.asStateFlow()
 
     //44
     private val _idFormateado = MutableStateFlow<String?>(null)
     val idFormateado: StateFlow<String?> = _idFormateado
-    
+
+    // Nuevo StateFlow para verificación de existencia de credencial (solo para navegación)
+    private val _verificationState = MutableStateFlow(VerificationCredencialState())
+    val verificationState = _verificationState.asStateFlow()
+
     // StateFlow para la lista de negocios
     private val _negociosState = MutableStateFlow(NegociosState())
     val negociosState = _negociosState.asStateFlow()
 
-    private val _tieneCredencial = MutableStateFlow(false)
-    val tieneCredencial : StateFlow<Boolean> = _tieneCredencial.asStateFlow()
+    // StateFlow para verificar si ya se comprobó la credencial
+    private val _credencialChecked = MutableStateFlow(false)
+    val credencialChecked = _credencialChecked.asStateFlow()
 
 
 
@@ -106,7 +119,7 @@ class AppVM: ViewModel() {
                         _estaLoggeado.value = false
                         _authState.update { it.copy(generalMessage = "Error al iniciar sesión con Google.") }
                     }
-                     _authState.update { it.copy(isLoading = false) }
+                    _authState.update { it.copy(isLoading = false) }
                 }
         }
     }
@@ -140,7 +153,7 @@ class AppVM: ViewModel() {
                         _estaLoggeado.value = false
                     }
                     if(_authState.value.generalMessage == null) {
-                         _authState.update { it.copy(isLoading = false) }
+                        _authState.update { it.copy(isLoading = false) }
                     }
                 }
         }
@@ -166,10 +179,10 @@ class AppVM: ViewModel() {
                             is FirebaseAuthUserCollisionException -> AuthState(emailError = "Este correo ya está registrado.")
                             else -> AuthState(generalMessage = "Error en el registro: ${exception?.localizedMessage}")
                         }
-                         _authState.value = newState
+                        _authState.value = newState
                     }
-                     if(_authState.value.generalMessage == null) {
-                         _authState.update { it.copy(isLoading = false) }
+                    if(_authState.value.generalMessage == null) {
+                        _authState.update { it.copy(isLoading = false) }
                     }
                 }
         }
@@ -178,6 +191,7 @@ class AppVM: ViewModel() {
     fun hacerLogout(context: Context) {
         auth.signOut()
         _estaLoggeado.value = false
+        resetCredencialCheck()
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(TOKEN_WEB)
@@ -216,6 +230,7 @@ class AppVM: ViewModel() {
                 )
 
                 val response = api.createAccount(body)
+                println("Response: $response")
                 onSuccess(response)
             } catch (e: Exception) {
                 onError(e)
@@ -223,6 +238,7 @@ class AppVM: ViewModel() {
         }
     }
 
+    // Función para obtener datos COMPLETOS del usuario (para pantalla Mi Credencial)
     fun getMe() {
         viewModelScope.launch {
             _credencialState.update { it.copy(isLoading = true, error = null) }
@@ -233,7 +249,13 @@ class AppVM: ViewModel() {
                     throw Exception("Usuario no autenticado.")
                 }
                 val response = api.getMe(email)
-                _credencialState.update { it.copy(isLoading = false, usuario = response) }
+                _credencialState.update {
+                    it.copy(
+                        isLoading = false,
+                        usuario = response,
+                        error = null
+                    )
+                }
 
                 response?.id?.let { id ->
                     _idFormateado.value = formatearIdUsuario(id)
@@ -241,8 +263,106 @@ class AppVM: ViewModel() {
 
             } catch (e: Exception) {
                 Log.e("AppVM", "Error al obtener datos del usuario", e)
-                _credencialState.update { it.copy(isLoading = false, error = "Error al obtener los datos: ${e.message}") }
+                _credencialState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al obtener los datos: ${e.message}",
+                        usuario = null
+                    )
+                }
             }
+        }
+    }
+
+    // Función para VERIFICAR EXISTENCIA de credencial (solo para navegación)
+    private fun checkCredencialExists() {
+        viewModelScope.launch {
+            _verificationState.update { it.copy(isLoading = true, hasCredencial = false, error = null, isNetworkError = false) }
+            try {
+                val email = auth.currentUser?.email
+
+                if (email == null) {
+                    throw Exception("Usuario no autenticado.")
+                }
+
+                // Llamar a la API solo para verificar existencia
+                val response = api.getMe(email)
+
+                // Éxito: La credencial existe
+                _verificationState.update {
+                    it.copy(
+                        isLoading = false,
+                        hasCredencial = true,
+                        error = null,
+                        isNetworkError = false
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("AppVM", "Error al verificar credencial", e)
+
+                // Detectar si es error de red o credencial no existe
+                val isNetworkIssue = e is java.net.UnknownHostException ||
+                        e is java.net.SocketTimeoutException ||
+                        e is java.io.IOException ||
+                        e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
+                        e.message?.contains("timeout", ignoreCase = true) == true ||
+                        e.message?.contains("Failed to connect", ignoreCase = true) == true
+
+                if (isNetworkIssue) {
+                    // Error de red: asumir que tiene credencial (beneficio de la duda)
+                    _verificationState.update {
+                        it.copy(
+                            isLoading = false,
+                            hasCredencial = true, // Permitir acceso offline
+                            error = "Sin conexión. Modo offline.",
+                            isNetworkError = true
+                        )
+                    }
+                } else {
+                    // Error de API (404, etc.): no tiene credencial
+                    _verificationState.update {
+                        it.copy(
+                            isLoading = false,
+                            hasCredencial = false,
+                            error = "Credencial no encontrada",
+                            isNetworkError = false
+                        )
+                    }
+                }
+            } finally {
+                _credencialChecked.value = true
+            }
+        }
+    }
+
+    // Función para verificar credencial al iniciar sesión
+    //mecanismo de protección que garantiza que la aplicación siempre tenga un estado definido, incluso en situaciones inesperadas donde el usuario no está autenticado cuando
+    fun verificarCredencial() {
+        if (auth.currentUser != null) {
+            checkCredencialExists()
+        } else {
+            _credencialChecked.value = true
+            _verificationState.update {
+                it.copy(
+                    isLoading = false,
+                    hasCredencial = false,
+                    error = null,
+                    isNetworkError = false
+                )
+            }
+        }
+    }
+
+    // Función para resetear el estado de verificación
+    fun resetCredencialCheck() {
+        _credencialChecked.value = false
+        _verificationState.update {
+            VerificationCredencialState(
+                isLoading = false,
+                hasCredencial = false,
+                error = null,
+                isNetworkError = false
+            )
         }
     }
     // Obtener un negocio por ID

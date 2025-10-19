@@ -40,8 +40,8 @@ fun AjustesScreen(
     Button(
         onClick = {
             appVM.createAccount(
-                curp = "EELG050828HMCSNBA8",
-                fechaNacimiento = "2025-08-28",
+                curp = "EELG050828HMCSNBA7",
+                fechaNacimiento = "2005-08-28",
                 entidadRegistro = "MEXICO",
                 onSuccess = { res -> println("Success: $res") },
                 onError = { err -> println("Error: $err") }
