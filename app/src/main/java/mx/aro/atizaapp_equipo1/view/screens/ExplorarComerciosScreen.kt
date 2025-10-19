@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,10 +36,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -50,119 +55,137 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil3.compose.AsyncImage
 import mx.aro.atizaapp_equipo1.R
 import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
-// MODELO
-data class Comercio(
-    val nombre: String,
-    val descripcion: String,
-    val imagenRes: Int
-)
-
-// --------- PANTALLA EXPLORAR COMERCIOS ---------
+// --------- PANTALLA EXPLORAR COMERCIOS (NEGOCIOS REALES) ---------
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ExplorarComerciosScreen(
     navController: NavHostController,
     appVM: AppVM = viewModel()
 ) {
-    val context = LocalContext.current
-
+    val state by appVM.negociosState.collectAsState()
     var searchText by remember { mutableStateOf("") }
-    val categorias = listOf("Todos", "Entretenimiento", "Comida", "Salud","Belleza","Educación","Moda y Accesorios","Servicios")
-
-    val comercios = listOf(
-        Comercio("Café Aroma", "Café y postres deliciosos", R.drawable.ic_launcher_foreground),
-        Comercio("Ferretería López", "Todo para tu hogar", R.drawable.ic_launcher_foreground),
-        Comercio("Tienda Verde", "Productos ecológicos", R.drawable.ic_launcher_foreground)
-    )
-
     var selectedCategoria by remember { mutableStateOf("Todos") }
 
-    Scaffold(
-        topBar = {
-            TextField(
-                value = searchText,
-                onValueChange = { searchText = it },
-                label = { Text("Buscar comercios") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            )
-        },
+    val categorias = listOf(
+        "Todos", "Entretenimiento", "Comida", "Salud",
+        "Belleza", "Educación", "Moda", "Servicios"
+    )
 
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Barra de búsqueda
+        TextField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            label = { Text("Buscar negocios") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        )
 
-    ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            // Botones de categorías
-            Row(
-                modifier = Modifier
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                categorias.forEach { categoria ->
-                    Button(
-                        onClick = { selectedCategoria = categoria },
-                        modifier = Modifier.padding(end = 8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedCategoria == categoria)
-                                Color.Gray else MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text(categoria, color = Color.White)
-                    }
+        // Botones de categorías
+        Row(
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            categorias.forEach { categoria ->
+                Button(
+                    onClick = { selectedCategoria = categoria },
+                    modifier = Modifier.padding(end = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedCategoria == categoria)
+                            Color.Gray else MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(categoria, color = Color.White)
                 }
             }
+        }
 
-            ElevatedButton(onClick = {
-                appVM.loadNextPageOfNegocios()
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Cargar negocios")
+        // Carga inicial de negocios
+        if (state.isLoadingInitial) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-            // Lista filtrada
+        } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val filtered = comercios.filter {
-                    it.nombre.contains(searchText, ignoreCase = true)
-                            && (selectedCategoria == "Todos" ||
-                            it.descripcion.contains(selectedCategoria, ignoreCase = true))
+                val filtered = state.negocios.filter { negocio ->
+                    negocio.nombre.contains(searchText, ignoreCase = true) &&
+                            (selectedCategoria == "Todos" || negocio.tipo.equals(selectedCategoria, ignoreCase = true))
                 }
-                items(filtered) { comercio ->
-                    ComercioItem(comercio, navController)
+
+                items(filtered) { negocio ->
+                    NegocioItem(negocio, navController)
                 }
+
+                // Spinner para paginación
+                if (state.isLoadingMore) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+
+                // Cargar siguiente página automáticamente
+                if (!state.endReached && !state.isLoadingMore) {
+                    item {
+                        LaunchedEffect(Unit) {
+                            appVM.loadNextPageOfNegocios()
+                        }
+                    }
+                }
+            }
+
+            // Mostrar error si existe
+            state.error?.let { errorMsg ->
+                Text(errorMsg, color = Color.Red, modifier = Modifier.padding(8.dp))
             }
         }
     }
 }
 
+// --------- ITEM DE CADA NEGOCIO ---------
 @Composable
-fun ComercioItem(comercio: Comercio,navController: NavHostController) {
+fun NegocioItem(negocio: mx.aro.atizaapp_equipo1.model.Negocio, navController: NavHostController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { navController.navigate("explorar_comercio") },
+            .clickable { navController.navigate("explorar_comercio/${negocio.id}") },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Row(modifier = Modifier.padding(8.dp)) {
-            Image(
-                painter = painterResource(id = comercio.imagenRes),
-                contentDescription = comercio.nombre,
+            AsyncImage(
+                model = negocio.imagen?.replace("/view?usp=drive_link", "")
+                    ?: "https://via.placeholder.com/80",
+                contentDescription = negocio.nombre,
                 modifier = Modifier.size(80.dp)
             )
             Column(modifier = Modifier.padding(start = 8.dp)) {
-                Text(comercio.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(comercio.descripcion, fontSize = 14.sp)
+                Text(negocio.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Tipo: ${negocio.tipo}", fontSize = 14.sp)
+                Text("Ubicación: ${negocio.ubicacion}", fontSize = 12.sp)
             }
         }
     }
 }
 
-// --------- NAVIGATION BAR ---------
+// --------- BOTTOM NAVIGATION BAR ---------
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -195,8 +218,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     }
 }
 
-
-
+// --------- PREVIEW ---------
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
