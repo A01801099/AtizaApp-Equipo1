@@ -37,7 +37,7 @@ fun AppNavHost(appVM: AppVM) {
         "mi_credencial",
         "contacto",
         "codigo_qr_credencial",
-        "explorar_comercio",
+        "explorar_comercio/{id}",
         "ajustes"
     )
 
