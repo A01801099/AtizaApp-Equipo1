@@ -134,11 +134,16 @@ private fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
         Spacer(modifier = Modifier.height(24.dp))
 
         // Datos del usuario
-        Text(text = "CURP: ${usuario.curp}", fontSize = 16.sp)
-        Text(text = "Nombre: ${usuario.nombre}", fontSize = 16.sp)
-        Text(text = "Correo: ${usuario.correo}", fontSize = 16.sp)
-        Text(text = "Estado: ${usuario.estado}", fontSize = 16.sp)
-        Text(text = "Nacimiento: ${usuario.nacimiento}", fontSize = 16.sp)
+        Text(text = "CURP: ${usuario.curp}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center)
+        Text(text = "Nombre: ${usuario.nombre}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center)
+        Text(text = "Correo: ${usuario.correo}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center)
+        Text(text = "Estado: ${usuario.estado}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center)
+        Text(text = "Nacimiento: ${usuario.nacimiento}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center)
 
         Spacer(modifier = Modifier.height(32.dp))
     }

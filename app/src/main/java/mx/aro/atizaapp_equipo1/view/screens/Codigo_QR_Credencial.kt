@@ -40,6 +40,7 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
+
 /**
  * Muestra el QR usando el id del usuario obtenido desde el backend (getMe).
  * Si el usuario no está cargado llama a appVM.getMe() una vez.
@@ -106,7 +107,7 @@ fun CodigoQRCredencialScreen(
             verticalArrangement = Arrangement.Center
         ) {
             // Si aún no hay usuario, mostrar loader
-            if (idUsuario == null) {
+            if (idUsuario == null || credState.usuario == null) {
                 CircularProgressIndicator()
                 Text(
                     text = "Cargando credencial...",
@@ -116,12 +117,14 @@ fun CodigoQRCredencialScreen(
                 return@Column
             }
 
+            val usuario = credState.usuario!!
+
             // Mostrar el código QR generado
             qrBitmap?.let {
                 Image(
                     bitmap = it.asImageBitmap(),
                     contentDescription = "Código QR del usuario",
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier.size(300.dp)
                 )
             }
 
@@ -134,6 +137,12 @@ fun CodigoQRCredencialScreen(
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
+
+            Text(text = "Nombre: ${usuario.nombre}", fontSize = 16.sp,fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center)
+            Text(text = "Correo: ${usuario.correo}", fontSize = 16.sp,fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center)
+
         }
     }
 }
