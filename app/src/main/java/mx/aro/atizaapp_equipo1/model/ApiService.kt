@@ -8,6 +8,7 @@ import okhttp3.OkHttpClient
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 //TODO DATA CLASES EN OTRO ARCHIVO
@@ -66,6 +67,9 @@ interface ApiService {
         @Query("q") q: String? = null,
         @Query("cursor") cursor: String? = null
     ): NegociosApiResponse
+
+    @GET("/negocios/{id}")
+    suspend fun getNegocioById(@Path("id") id: Int): Negocio
 
 }
 

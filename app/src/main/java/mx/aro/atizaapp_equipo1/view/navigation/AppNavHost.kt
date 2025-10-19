@@ -2,6 +2,7 @@ package mx.aro.atizaapp_equipo1.view.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -94,9 +95,20 @@ fun AppNavHost(appVM: AppVM) {
             composable("codigo_qr_credencial") {
                 CodigoQRCredencialScreen(navController = navController)
             }
-            composable("explorar_comercio"){
-                DetalleComercioScreen(navController = navController)
+            composable("explorar_comercio/{id}") { backStackEntry ->
+                val negocioId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                if (negocioId != null) {
+                    DetalleComercioScreen(
+                        navController = navController,
+                        negocioId = negocioId,
+                        appVM = appVM
+                    )
+                } else {
+                    // Manejo opcional si el id no es válido
+                    Text("Negocio no encontrado")
+                }
             }
+
             composable("ajustes"){
                 AjustesScreen(navController = navController, appVM = appVM)
             }

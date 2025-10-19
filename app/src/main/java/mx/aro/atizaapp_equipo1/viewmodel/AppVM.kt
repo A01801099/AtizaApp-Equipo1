@@ -235,7 +235,17 @@ class AppVM: ViewModel() {
             }
         }
     }
-    
+    // Obtener un negocio por ID
+    fun getNegocioById(id: Int, onSuccess: (Negocio) -> Unit, onError: (Throwable) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val negocio = api.getNegocioById(id)
+                onSuccess(negocio)
+            } catch (e: Exception) {
+                onError(e)
+            }
+        }
+    }
     fun loadNextPageOfNegocios() {
         viewModelScope.launch {
             val currentState = _negociosState.value
