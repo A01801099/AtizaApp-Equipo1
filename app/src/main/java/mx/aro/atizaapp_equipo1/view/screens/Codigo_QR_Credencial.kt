@@ -1,6 +1,7 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +22,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,16 +33,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
+import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
+/**
+ * Muestra el QR usando el id del usuario obtenido desde el backend (getMe).
+ * Si el usuario no está cargado llama a appVM.getMe() una vez.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CodigoQRCredencialScreen(navController: NavHostController) {
-    val numeroTarjeta = "111111111.-11-11-1-1"
-    val qrBitmap = remember { generarCodigoQR(numeroTarjeta) }
+fun CodigoQRCredencialScreen(
+    navController: NavHostController,
+    appVM: AppVM = viewModel()
+) {
+    // Estado de la credencial desde el ViewModel
+    val credState by appVM.credencialState.collectAsState()
+
+    // Si no tenemos usuario, pedimos los datos una vez
+    LaunchedEffect(Unit) {
+        if (credState.usuario == null) {
+            try {
+                appVM.getMe()
+            } catch (e: Exception) {
+                // getMe ya maneja errores internamente, aun así mostramos toast por seguridad
+                Toast.makeText(navController.context, "Error al obtener la credencial", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // Obtener idUsuario si existe
+    val idUsuario: Int? = credState.usuario?.id
+
+    // Generar QR cuando idUsuario cambie (si es null no genera)
+    val qrBitmap: Bitmap? = remember(idUsuario) {
+        idUsuario?.let { generarCodigoQR(it.toString()) }
+    }
 
     Scaffold(
         topBar = {
@@ -67,6 +101,17 @@ fun CodigoQRCredencialScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Si aún no hay usuario, mostrar loader
+            if (idUsuario == null) {
+                CircularProgressIndicator()
+                Text(
+                    text = "Cargando credencial...",
+                    modifier = Modifier.padding(top = 12.dp),
+                    textAlign = TextAlign.Center
+                )
+                return@Column
+            }
+
             // Mostrar el código QR generado
             qrBitmap?.let {
                 Image(
@@ -76,11 +121,11 @@ fun CodigoQRCredencialScreen(navController: NavHostController) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(24.dp))
 
-            // Mostrar el texto del número de tarjeta debajo
+            // Mostrar el texto del id debajo
             Text(
-                text = "Número de Tarjeta: $numeroTarjeta",
+                text = "ID de usuario: $idUsuario",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
@@ -91,6 +136,7 @@ fun CodigoQRCredencialScreen(navController: NavHostController) {
 
 /**
  * Función auxiliar para generar un código QR desde un texto
+ * (misma implementación que tenías, adaptada aquí)
  */
 fun generarCodigoQR(texto: String, size: Int = 512): Bitmap? {
     return try {
