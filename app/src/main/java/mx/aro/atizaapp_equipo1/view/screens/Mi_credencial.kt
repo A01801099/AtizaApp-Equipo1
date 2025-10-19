@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCode
@@ -33,7 +34,6 @@ import androidx.navigation.NavHostController
 import mx.aro.atizaapp_equipo1.R
 import mx.aro.atizaapp_equipo1.model.Usuario
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
@@ -42,7 +42,8 @@ fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
         appVM.getMe()
     }
 
-    // 2. Observa el estado de la credencial desde el ViewModel
+    // 2. Observa el idFormateado y el estado de la credencial desde el ViewModel
+    val idFormateado by appVM.idFormateado.collectAsState()
     val credencialState by appVM.credencialState.collectAsState()
 
     Scaffold(
@@ -68,11 +69,11 @@ fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
             contentAlignment = Alignment.Center
         ) {
             when {
-                // 3. Muestra un indicador de carga
+                // Indicador de carga
                 credencialState.isLoading -> {
                     CircularProgressIndicator()
                 }
-                // 4. Muestra un mensaje de error
+                // Mensaje de error
                 credencialState.error != null -> {
                     Text(
                         text = "Error: ${credencialState.error}",
@@ -80,9 +81,12 @@ fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
                         modifier = Modifier.padding(16.dp)
                     )
                 }
-                // 5. Muestra los datos del usuario cuando se han cargado
+                // Mostrar datos del usuario cuando se cargan
                 credencialState.usuario != null -> {
-                    CredencialContentView(usuario = credencialState.usuario!!)
+                    CredencialContentView(
+                        usuario = credencialState.usuario!!,
+                        idFormateado = idFormateado
+                    )
                 }
             }
         }
@@ -90,7 +94,7 @@ fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
 }
 
 @Composable
-private fun CredencialContentView(usuario: Usuario) {
+private fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -100,44 +104,42 @@ private fun CredencialContentView(usuario: Usuario) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Imagen de la credencial
-        Image(
-            painter = painterResource(id = R.drawable.tarjeta_beneficio_joven),
-            contentDescription = "Imagen de la credencial",
+        // 🖼️ Box para superponer el ID sobre la imagen
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-        )
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            // Imagen de la credencial
+            Image(
+                painter = painterResource(id = R.drawable.atras_tarjeta2),
+                contentDescription = "Imagen de la credencial",
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Texto del ID formateado centrado sobre la imagen
+            idFormateado?.let { id ->
+                Text(
+                    text = id,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = androidx.compose.ui.graphics.Color.Black,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.offset(y = 6.dp)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Datos del usuario obtenidos de la API
-        Text(
-            text = "CURP: ${usuario.curp}",
-            fontSize = 16.sp
-        )
-        Text(
-            text = "Nombre: ${usuario.nombre}",
-            fontSize = 16.sp
-        )
-        Text(
-            text = "Correo: ${usuario.correo}",
-            fontSize = 16.sp
-        )
-        Text(
-            text = "Estado: ${usuario.estado}",
-            fontSize = 16.sp
-        )
-        Text(
-            text = "Nacimiento: ${usuario.nacimiento}",
-            fontSize = 16.sp
-        )
+        // Datos del usuario
+        Text(text = "CURP: ${usuario.curp}", fontSize = 16.sp)
+        Text(text = "Nombre: ${usuario.nombre}", fontSize = 16.sp)
+        Text(text = "Correo: ${usuario.correo}", fontSize = 16.sp)
+        Text(text = "Estado: ${usuario.estado}", fontSize = 16.sp)
+        Text(text = "Nacimiento: ${usuario.nacimiento}", fontSize = 16.sp)
 
         Spacer(modifier = Modifier.height(32.dp))
-
-
-
-        Spacer(modifier = Modifier.height(8.dp))
-        // El botón de prueba ha sido eliminado, ya que la carga ahora es automática.
     }
 }

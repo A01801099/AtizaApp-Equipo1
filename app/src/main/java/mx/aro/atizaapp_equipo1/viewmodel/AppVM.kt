@@ -26,6 +26,7 @@ import mx.aro.atizaapp_equipo1.model.Negocio
 import mx.aro.atizaapp_equipo1.model.NegociosApiResponse
 import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
 import mx.aro.atizaapp_equipo1.model.Usuario
+import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 
 // Data class para representar el estado de la UI de autenticación
 data class AuthState(
@@ -70,6 +71,10 @@ class AppVM: ViewModel() {
     // Nuevo StateFlow para manejar el estado de la credencial del usuario
     private val _credencialState = MutableStateFlow(CredencialState())
     val credencialState = _credencialState.asStateFlow()
+
+    //44
+    private val _idFormateado = MutableStateFlow<String?>(null)
+    val idFormateado: StateFlow<String?> = _idFormateado
     
     // StateFlow para la lista de negocios
     private val _negociosState = MutableStateFlow(NegociosState())
@@ -229,6 +234,11 @@ class AppVM: ViewModel() {
                 }
                 val response = api.getMe(email)
                 _credencialState.update { it.copy(isLoading = false, usuario = response) }
+
+                response?.id?.let { id ->
+                    _idFormateado.value = formatearIdUsuario(id)
+                }
+
             } catch (e: Exception) {
                 Log.e("AppVM", "Error al obtener datos del usuario", e)
                 _credencialState.update { it.copy(isLoading = false, error = "Error al obtener los datos: ${e.message}") }

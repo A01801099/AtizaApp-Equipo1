@@ -59,7 +59,6 @@ fun CodigoQRCredencialScreen(
             try {
                 appVM.getMe()
             } catch (e: Exception) {
-                // getMe ya maneja errores internamente, aun así mostramos toast por seguridad
                 Toast.makeText(navController.context, "Error al obtener la credencial", Toast.LENGTH_SHORT).show()
             }
         }
@@ -68,9 +67,14 @@ fun CodigoQRCredencialScreen(
     // Obtener idUsuario si existe
     val idUsuario: Int? = credState.usuario?.id
 
-    // Generar QR cuando idUsuario cambie (si es null no genera)
-    val qrBitmap: Bitmap? = remember(idUsuario) {
-        idUsuario?.let { generarCodigoQR(it.toString()) }
+    // 🔢 Formatear el ID con ceros y guiones
+    val idFormateado = remember(idUsuario) {
+        idUsuario?.let { formatearIdUsuario(it) }
+    }
+
+    // Generar QR con el valor formateado
+    val qrBitmap: Bitmap? = remember(idFormateado) {
+        idFormateado?.let { generarCodigoQR(it) }
     }
 
     Scaffold(
@@ -121,11 +125,11 @@ fun CodigoQRCredencialScreen(
                 )
             }
 
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.size(24.dp))
 
-            // Mostrar el texto del id debajo
+            // Mostrar el texto del número formateado debajo
             Text(
-                text = "ID de usuario: $idUsuario",
+                text = "Número de Tarjeta: $idFormateado",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
@@ -135,8 +139,18 @@ fun CodigoQRCredencialScreen(
 }
 
 /**
+ * 🔧 Función para dar formato al ID del usuario:
+ * Ejemplo:
+ * id = 1      → 0000-0000-0000-0001
+ * id = 10000  → 0000-0000-0001-0000
+ */
+fun formatearIdUsuario(id: Int): String {
+    val idStr = id.toString().padStart(16, '0') // asegura 16 dígitos
+    return idStr.chunked(4).joinToString("-")  // agrupa de 4 en 4 con guiones
+}
+
+/**
  * Función auxiliar para generar un código QR desde un texto
- * (misma implementación que tenías, adaptada aquí)
  */
 fun generarCodigoQR(texto: String, size: Int = 512): Bitmap? {
     return try {
