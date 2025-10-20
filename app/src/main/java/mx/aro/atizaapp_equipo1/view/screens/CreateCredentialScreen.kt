@@ -287,8 +287,12 @@ fun CreateCredentialScreen(
                                 Toast.makeText(context, "Selecciona una fecha de nacimiento", Toast.LENGTH_SHORT).show()
                             }
                             else -> {
+                                // Construir el nombre completo
+                                val nombreCompleto = "$nombre $apellidoPaterno $apellidoMaterno".trim()
+
                                 // Llamar al ViewModel para crear la cuenta
                                 appVM.createAccount(
+                                    nombre = nombreCompleto,
                                     curp = curp,
                                     fechaNacimiento = fechaNacimiento,
                                     entidadRegistro = entidadRegistro,

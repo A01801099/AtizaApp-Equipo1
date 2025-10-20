@@ -26,7 +26,6 @@ import mx.aro.atizaapp_equipo1.model.Negocio
 import mx.aro.atizaapp_equipo1.model.NegociosApiResponse
 import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
 import mx.aro.atizaapp_equipo1.model.Usuario
-import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 
 // Data class para representar el estado de la UI de autenticación
 data class AuthState(
@@ -79,10 +78,6 @@ class AppVM: ViewModel() {
     // Nuevo StateFlow para manejar el estado de la credencial del usuario (datos completos)
     private val _credencialState = MutableStateFlow(CredencialState())
     val credencialState = _credencialState.asStateFlow()
-
-    //44
-    private val _idFormateado = MutableStateFlow<String?>(null)
-    val idFormateado: StateFlow<String?> = _idFormateado
 
     // Nuevo StateFlow para verificación de existencia de credencial (solo para navegación)
     private val _verificationState = MutableStateFlow(VerificationCredencialState())
@@ -201,6 +196,7 @@ class AppVM: ViewModel() {
     }
 
     fun createAccount(
+        nombre: String,
         curp: String,
         fechaNacimiento: String,
         entidadRegistro: String,
@@ -210,15 +206,13 @@ class AppVM: ViewModel() {
         viewModelScope.launch {
             try {
                 val email = auth.currentUser?.email
-                val nombre = auth.currentUser?.displayName
-
 
                 if(email == null){
                     throw Exception("Email no encontrado")
                 }
 
-                if(nombre == null){
-                    throw Exception("Nombre no encontrado")
+                if(nombre.isBlank()){
+                    throw Exception("El nombre no puede estar vacío")
                 }
 
                 val body = CreateAccountRequest(
@@ -226,11 +220,10 @@ class AppVM: ViewModel() {
                     nacimiento = fechaNacimiento,
                     entidadRegistro = entidadRegistro,
                     correo = email,
-                    nombre = nombre
+                    nombre = nombre.trim()
                 )
 
                 val response = api.createAccount(body)
-                println("Response: $response")
                 onSuccess(response)
             } catch (e: Exception) {
                 onError(e)
@@ -256,11 +249,6 @@ class AppVM: ViewModel() {
                         error = null
                     )
                 }
-
-                response?.id?.let { id ->
-                    _idFormateado.value = formatearIdUsuario(id)
-                }
-
             } catch (e: Exception) {
                 Log.e("AppVM", "Error al obtener datos del usuario", e)
                 _credencialState.update {
@@ -336,7 +324,6 @@ class AppVM: ViewModel() {
     }
 
     // Función para verificar credencial al iniciar sesión
-    //mecanismo de protección que garantiza que la aplicación siempre tenga un estado definido, incluso en situaciones inesperadas donde el usuario no está autenticado cuando
     fun verificarCredencial() {
         if (auth.currentUser != null) {
             checkCredencialExists()
