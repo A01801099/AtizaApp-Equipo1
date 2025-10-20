@@ -2,6 +2,7 @@ package mx.aro.atizaapp_equipo1.viewmodel
 
 import android.content.Context
 import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -9,6 +10,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -62,6 +64,14 @@ data class NegociosState(
     val endReached: Boolean = false        // true si la API devuelve un cursor nulo
 )
 
+// Data class para el estado de recuperación de contraseña
+data class ForgotPasswordState(
+    val email: String = "",
+    val isLoading: Boolean = false,
+    val sent: Boolean = false,
+    val error: String? = null
+)
+
 class AppVM: ViewModel() {
 
     //API-ATIZAAP-API
@@ -94,6 +104,10 @@ class AppVM: ViewModel() {
     // StateFlow para verificar si ya se comprobó la credencial
     private val _credencialChecked = MutableStateFlow(false)
     val credencialChecked = _credencialChecked.asStateFlow()
+
+    // StateFlow para la recuperación de contraseña
+    private val _forgotPasswordState = MutableStateFlow(ForgotPasswordState())
+    val forgotPasswordState = _forgotPasswordState.asStateFlow()
 
 
 
@@ -418,5 +432,49 @@ class AppVM: ViewModel() {
                 }
             }
         }
+    }
+
+    // ========== FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA ==========
+
+    // Función para actualizar el email en el estado de recuperación de contraseña
+    fun onForgotPasswordEmailChange(email: String) {
+        _forgotPasswordState.update { it.copy(email = email, error = null) }
+    }
+
+    // Función para enviar el correo de restablecimiento de contraseña
+    fun sendPasswordResetEmail() {
+        val email = _forgotPasswordState.value.email.trim()
+
+        // Validar formato de email
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _forgotPasswordState.update { it.copy(error = "Ingresa un correo válido") }
+            return
+        }
+
+        _forgotPasswordState.update { it.copy(isLoading = true, error = null, sent = false) }
+
+        // Configurar el idioma de Firebase al español
+        auth.setLanguageCode("es")
+
+        auth.sendPasswordResetEmail(email)
+            .addOnSuccessListener {
+                _forgotPasswordState.update { it.copy(isLoading = false, sent = true) }
+            }
+            .addOnFailureListener { e ->
+                // Mapeo de errores seguro (no enumera usuarios existentes por seguridad)
+                val code = (e as? FirebaseAuthException)?.errorCode
+                val errorMessage = when (code) {
+                    "ERROR_INVALID_EMAIL" -> "El correo no tiene un formato válido."
+                    "ERROR_OPERATION_NOT_ALLOWED" ->
+                        "El inicio de sesión por correo está deshabilitado. Contacta soporte."
+                    else -> "No pudimos procesar la solicitud. Inténtalo de nuevo en unos minutos."
+                }
+                _forgotPasswordState.update { it.copy(isLoading = false, error = errorMessage) }
+            }
+    }
+
+    // Función para resetear el estado de recuperación de contraseña
+    fun clearForgotPasswordState() {
+        _forgotPasswordState.value = ForgotPasswordState()
     }
 }

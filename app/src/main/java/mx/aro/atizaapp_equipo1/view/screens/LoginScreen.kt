@@ -50,7 +50,8 @@ import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 fun LoginScreen(
     appVM: AppVM,
     onRegisterClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onForgotPasswordClick: () -> Unit  // ← AGREGAR ESTE PARÁMETRO
 ) {
     val purple = Color(0xFF5B2DCC) // morado del mock
     val white = Color(0xFFFFFFFF)
@@ -175,7 +176,7 @@ fun LoginScreen(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 TextButton(onClick = {
-                    Toast.makeText(context, "Funcionalidad próximamente", Toast.LENGTH_SHORT).show()
+                    onForgotPasswordClick()
                 }) {
                     Text("Olvidé mi contraseña", color = purple)
                 }

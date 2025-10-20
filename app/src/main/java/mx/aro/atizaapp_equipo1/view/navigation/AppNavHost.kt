@@ -28,6 +28,7 @@ import mx.aro.atizaapp_equipo1.view.screens.LoginScreen
 import mx.aro.atizaapp_equipo1.view.screens.RegisterScreen
 import mx.aro.atizaapp_equipo1.view.screens.CreateCredentialScreen
 import mx.aro.atizaapp_equipo1.view.screens.LoadingScreen
+import mx.aro.atizaapp_equipo1.view.screens.ForgotPasswordScreen
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 @Composable
@@ -66,7 +67,7 @@ fun AppNavHost(appVM: AppVM) {
         "mi_credencial",
         "contacto",
         "codigo_qr_credencial",
-        "explorar_comercio/{id}",
+        "explorar_comercio",
         "ajustes"
     )
 
@@ -91,13 +92,25 @@ fun AppNavHost(appVM: AppVM) {
             composable("login") {
                 LoginScreen(
                     appVM = appVM,
-                    onRegisterClick = { navController.navigate("register") }
+                    onRegisterClick = { navController.navigate("register") },
+                    onForgotPasswordClick = { navController.navigate("forgot_password") }
                 )
             }
             composable("register") {
                 RegisterScreen(
                     appVM = appVM,
                     onLoginClick = { navController.navigate("login") }
+                )
+            }
+            composable("forgot_password") {
+                ForgotPasswordScreen(
+                    appVM = appVM,
+                    onBackToLogin = {
+                        appVM.clearForgotPasswordState()
+                        navController.navigate("login") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
                 )
             }
 

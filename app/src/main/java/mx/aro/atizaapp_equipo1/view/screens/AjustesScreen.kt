@@ -44,7 +44,8 @@ fun AjustesScreen(
                 fechaNacimiento = "2005-08-28",
                 entidadRegistro = "MEXICO",
                 onSuccess = { res -> println("Success: $res") },
-                onError = { err -> println("Error: $err") }
+                onError = { err -> println("Error: $err") },
+                nombre = "Gabriel Esperilla Leon"
             )
         }
     ) {
