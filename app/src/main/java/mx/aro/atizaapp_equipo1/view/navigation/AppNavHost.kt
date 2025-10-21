@@ -29,6 +29,7 @@ import mx.aro.atizaapp_equipo1.view.screens.RegisterScreen
 import mx.aro.atizaapp_equipo1.view.screens.CreateCredentialScreen
 import mx.aro.atizaapp_equipo1.view.screens.LoadingScreen
 import mx.aro.atizaapp_equipo1.view.screens.ForgotPasswordScreen
+import mx.aro.atizaapp_equipo1.view.screens.OfertasScreen
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 @Composable
@@ -67,8 +68,9 @@ fun AppNavHost(appVM: AppVM) {
         "mi_credencial",
         "contacto",
         "codigo_qr_credencial",
-        "explorar_comercio",
-        "ajustes"
+        "explorar_comercio/{id}",
+        "ajustes",
+        "beneficios"
     )
 
     Scaffold(
@@ -159,6 +161,10 @@ fun AppNavHost(appVM: AppVM) {
             }
             composable("codigo_qr_credencial") {
                 CodigoQRCredencialScreen(navController = navController)
+            }
+
+            composable("beneficios") {
+                OfertasScreen(navController = navController)
             }
             composable("explorar_comercio/{id}") { backStackEntry ->
                 val negocioId = backStackEntry.arguments?.getString("id")?.toIntOrNull()

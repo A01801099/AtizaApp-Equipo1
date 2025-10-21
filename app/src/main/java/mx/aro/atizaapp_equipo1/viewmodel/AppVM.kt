@@ -19,6 +19,7 @@ import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.aro.atizaapp_equipo1.model.ApiClient
@@ -29,7 +30,7 @@ import mx.aro.atizaapp_equipo1.model.NegociosApiResponse
 import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
 import mx.aro.atizaapp_equipo1.model.Usuario
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
-
+import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 // Data class para representar el estado de la UI de autenticación
 data class AuthState(
     val isLoading: Boolean = false,
@@ -108,6 +109,7 @@ class AppVM: ViewModel() {
     // StateFlow para la recuperación de contraseña
     private val _forgotPasswordState = MutableStateFlow(ForgotPasswordState())
     val forgotPasswordState = _forgotPasswordState.asStateFlow()
+
 
 
 

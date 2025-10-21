@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Home
@@ -206,6 +207,12 @@ fun BottomNavigationBar(navController: NavHostController) {
             onClick = { navController.navigate("mi_credencial") }
         )
         NavigationBarItem(
+            icon = { Icon(Icons.Default.AddShoppingCart, contentDescription = "Ofertas") },
+            label = { Text("Beneficios") },
+            selected = currentRoute == "beneficios",
+            onClick = { navController.navigate("beneficios") }
+        )
+        NavigationBarItem(
             icon = { Icon(Icons.Default.Call, contentDescription = "Contáctanos") },
             label = { Text("Contáctanos") },
             selected = currentRoute == "contacto",
@@ -217,6 +224,7 @@ fun BottomNavigationBar(navController: NavHostController) {
             selected = currentRoute == "ajustes",
             onClick = { navController.navigate("ajustes") }
         )
+
     }
 }
 
