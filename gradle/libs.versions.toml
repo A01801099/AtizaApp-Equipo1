@@ -24,6 +24,7 @@ coilComposeVersion = "3.3.0"
 playServicesCodeScanner = "16.1.0"
 material3 = "1.4.0"
 zxingAndroidEmbedded = "4.3.0"
+roomKtx = "2.8.2"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -56,6 +57,7 @@ androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", versi
 androidx-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

@@ -164,7 +164,7 @@ fun AppNavHost(appVM: AppVM) {
             }
 
             composable("beneficios") {
-                OfertasScreen(navController = navController)
+                OfertasScreen(navController = navController, appVM = appVM)
             }
             composable("explorar_comercio/{id}") { backStackEntry ->
                 val negocioId = backStackEntry.arguments?.getString("id")?.toIntOrNull()

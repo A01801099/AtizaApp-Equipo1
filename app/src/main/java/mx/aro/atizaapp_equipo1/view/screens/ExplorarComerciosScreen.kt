@@ -27,8 +27,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -64,6 +66,7 @@ import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 // --------- PANTALLA EXPLORAR COMERCIOS (NEGOCIOS REALES) ---------
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ExplorarComerciosScreen(
@@ -79,85 +82,100 @@ fun ExplorarComerciosScreen(
         "Belleza", "Educación", "Moda", "Servicios"
     )
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Barra de búsqueda
-        TextField(
-            value = searchText,
-            onValueChange = { searchText = it },
-            label = { Text("Buscar negocios") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        )
-
-        // Botones de categorías
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            categorias.forEach { categoria ->
-                Button(
-                    onClick = { selectedCategoria = categoria },
-                    modifier = Modifier.padding(end = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedCategoria == categoria)
-                            Color.Gray else MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text(categoria, color = Color.White)
-                }
-            }
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Explorar negocios") }
+            )
         }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Barra de búsqueda
+            TextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                label = { Text("Buscar negocios") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
 
-        // Carga inicial de negocios
-        if (state.isLoadingInitial) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            // Botones de categorías
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                val filtered = state.negocios.filter { negocio ->
-                    negocio.nombre.contains(searchText, ignoreCase = true) &&
-                            (selectedCategoria == "Todos" || negocio.tipo.equals(selectedCategoria, ignoreCase = true))
-                }
-
-                items(filtered) { negocio ->
-                    NegocioItem(negocio, navController)
-                }
-
-                // Spinner para paginación
-                if (state.isLoadingMore) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                }
-
-                // Cargar siguiente página automáticamente
-                if (!state.endReached && !state.isLoadingMore) {
-                    item {
-                        LaunchedEffect(Unit) {
-                            appVM.loadNextPageOfNegocios()
-                        }
+                categorias.forEach { categoria ->
+                    Button(
+                        onClick = { selectedCategoria = categoria },
+                        modifier = Modifier.padding(end = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedCategoria == categoria)
+                                Color.Gray else MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(categoria, color = Color.White)
                     }
                 }
             }
 
-            // Mostrar error si existe
-            state.error?.let { errorMsg ->
-                Text(errorMsg, color = Color.Red, modifier = Modifier.padding(8.dp))
+            // Carga inicial de negocios
+            if (state.isLoadingInitial) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val filtered = state.negocios.filter { negocio ->
+                        negocio.nombre.contains(searchText, ignoreCase = true) &&
+                                (selectedCategoria == "Todos" || negocio.tipo.equals(selectedCategoria, ignoreCase = true))
+                    }
+
+                    items(filtered) { negocio ->
+                        NegocioItem(negocio, navController)
+                    }
+
+                    // Spinner para paginación
+                    if (state.isLoadingMore) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+
+                    // Cargar siguiente página automáticamente
+                    if (!state.endReached && !state.isLoadingMore) {
+                        item {
+                            LaunchedEffect(Unit) {
+                                appVM.loadNextPageOfNegocios()
+                            }
+                        }
+                    }
+                }
+
+                // Mostrar error si existe
+                state.error?.let { errorMsg ->
+                    Text(errorMsg, color = Color.Red, modifier = Modifier.padding(8.dp))
+                }
             }
         }
     }
@@ -226,7 +244,6 @@ fun BottomNavigationBar(navController: NavHostController) {
             selected = currentRoute == "ajustes",
             onClick = { navController.navigate("ajustes") }
         )
-
     }
 }
 

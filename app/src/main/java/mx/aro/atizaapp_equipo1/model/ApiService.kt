@@ -72,6 +72,23 @@ data class Negocio (
     val descripcion: String
 )
 
+data class OfertasApiResponse(
+    val items: List<Oferta>,
+    val nextCursor: String?
+)
+
+data class Oferta(
+    val id: Int,
+    val negocioId: Int,
+    val titulo: String,
+    val descripcion: String,
+    val precio: String,
+    val fechaInicio: String,
+    val fechaFin: String?,
+    val estadoId: Int
+)
+
+
 // Interceptor para manejar timeouts dinámicos por endpoint
 private class DynamicTimeoutInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -111,6 +128,11 @@ interface ApiService {
     @GET("/negocios/{id}")
     suspend fun getNegocioById(@Path("id") id: Int): Negocio
 
+    @GET("/ofertas")
+    suspend fun getOfertas(
+        @Query("limit") limit: Int? = null,
+        @Query("cursor") cursor: String? = null
+    ): OfertasApiResponse
 }
 
 private fun provideGson(): Gson =

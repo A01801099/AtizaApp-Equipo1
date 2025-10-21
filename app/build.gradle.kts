@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.ui.unit)
+    implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)
 
 

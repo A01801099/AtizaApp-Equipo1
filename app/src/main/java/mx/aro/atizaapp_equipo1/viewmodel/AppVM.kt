@@ -27,8 +27,12 @@ import mx.aro.atizaapp_equipo1.model.CreateAccountRequest
 import mx.aro.atizaapp_equipo1.model.CreateAccountResponse
 import mx.aro.atizaapp_equipo1.model.Negocio
 import mx.aro.atizaapp_equipo1.model.NegociosApiResponse
+
 import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
 import mx.aro.atizaapp_equipo1.model.Usuario
+import androidx.compose.foundation.lazy.items
+import androidx.room.util.copy
+import mx.aro.atizaapp_equipo1.model.Oferta
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 // Data class para representar el estado de la UI de autenticación
@@ -82,6 +86,15 @@ data class CreateCredentialState(
     val canRetry: Boolean = false  // Indica si se puede mostrar botón "Reintentar"
 )
 
+data class OfertasState(
+    val isLoadingInitial: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val ofertas: List<Oferta> = emptyList(),
+    val error: String? = null,
+    val nextCursor: String? = null,
+    val endReached: Boolean = false
+)
+
 class AppVM: ViewModel() {
 
     //API-ATIZAAP-API
@@ -123,7 +136,8 @@ class AppVM: ViewModel() {
     private val _createCredentialState = MutableStateFlow(CreateCredentialState())
     val createCredentialState = _createCredentialState.asStateFlow()
 
-
+    private val _ofertasState = MutableStateFlow(OfertasState())
+    val ofertasState = _ofertasState.asStateFlow()
 
 
     init {
@@ -151,7 +165,41 @@ class AppVM: ViewModel() {
                 }
         }
     }
+    fun loadNextPageOfOfertas() {
+        viewModelScope.launch {
+            val currentState = _ofertasState.value
 
+            if (currentState.isLoadingInitial || currentState.isLoadingMore || currentState.endReached) return@launch
+
+            val isInitialLoad = currentState.ofertas.isEmpty()
+            if (isInitialLoad) {
+                _ofertasState.update { it.copy(isLoadingInitial = true, error = null) }
+            } else {
+                _ofertasState.update { it.copy(isLoadingMore = true, error = null) }
+            }
+
+            try {
+                val response = api.getOfertas(cursor = currentState.nextCursor)
+                _ofertasState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        isLoadingMore = false,
+                        ofertas = it.ofertas + response.items,
+                        nextCursor = response.nextCursor,
+                        endReached = response.nextCursor == null
+                    )
+                }
+            } catch (e: Exception) {
+                _ofertasState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        isLoadingMore = false,
+                        error = "Error al cargar ofertas: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
     fun hacerLoginEmailPassword(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
             _authState.value = AuthState(emailError = if(email.isBlank()) "El correo no puede estar vacío" else null, passwordError = if(pass.isBlank()) "La contraseña no puede estar vacía" else null)
