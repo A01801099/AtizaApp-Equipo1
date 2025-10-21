@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -200,12 +201,7 @@ fun BottomNavigationBar(navController: NavHostController) {
             selected = currentRoute == "explorar",
             onClick = { navController.navigate("explorar") }
         )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.CardMembership, contentDescription = "Mi credencial") },
-            label = { Text("Mi credencial") },
-            selected = currentRoute == "mi_credencial",
-            onClick = { navController.navigate("mi_credencial") }
-        )
+
         NavigationBarItem(
             icon = { Icon(Icons.Default.AddShoppingCart, contentDescription = "Ofertas") },
             label = { Text("Beneficios") },
@@ -213,8 +209,14 @@ fun BottomNavigationBar(navController: NavHostController) {
             onClick = { navController.navigate("beneficios") }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Call, contentDescription = "Contáctanos") },
-            label = { Text("Contáctanos") },
+            icon = { Icon(Icons.Default.CardMembership, contentDescription = "Mi credencial") },
+            label = { Text("Mi credencial",textAlign = TextAlign.Center,) },
+            selected = currentRoute == "mi_credencial",
+            onClick = { navController.navigate("mi_credencial") }
+        )
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Call, contentDescription = "Contacto") },
+            label = { Text("Contacto") },
             selected = currentRoute == "contacto",
             onClick = { navController.navigate("contacto") }
         )
