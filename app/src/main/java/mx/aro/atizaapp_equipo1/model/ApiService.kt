@@ -133,6 +133,13 @@ interface ApiService {
         @Query("limit") limit: Int? = null,
         @Query("cursor") cursor: String? = null
     ): OfertasApiResponse
+
+    @GET("/ofertas")
+    suspend fun getOfertasByNegocio(
+        @Query("negocioId") negocioId: Int,
+        @Query("limit") limit: Int? = null,
+        @Query("cursor") cursor: String? = null
+    ): OfertasApiResponse
 }
 
 private fun provideGson(): Gson =

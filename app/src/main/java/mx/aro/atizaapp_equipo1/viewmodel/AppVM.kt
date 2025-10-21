@@ -95,6 +95,14 @@ data class OfertasState(
     val endReached: Boolean = false
 )
 
+// Data class para el estado de ofertas de un negocio específico
+data class OfertasNegocioState(
+    val isLoading: Boolean = false,
+    val ofertas: List<Oferta> = emptyList(),
+    val error: String? = null,
+    val negocioId: Int? = null
+)
+
 class AppVM: ViewModel() {
 
     //API-ATIZAAP-API
@@ -138,6 +146,10 @@ class AppVM: ViewModel() {
 
     private val _ofertasState = MutableStateFlow(OfertasState())
     val ofertasState = _ofertasState.asStateFlow()
+
+    // StateFlow para ofertas de un negocio específico
+    private val _ofertasNegocioState = MutableStateFlow(OfertasNegocioState())
+    val ofertasNegocioState = _ofertasNegocioState.asStateFlow()
 
 
     init {
@@ -649,6 +661,40 @@ class AppVM: ViewModel() {
                 onError(e)
             }
         }
+    }
+
+    // Cargar ofertas de un negocio específico
+    fun loadOfertasByNegocio(negocioId: Int) {
+        viewModelScope.launch {
+            _ofertasNegocioState.update {
+                it.copy(isLoading = true, error = null, negocioId = negocioId)
+            }
+
+            try {
+                val response = api.getOfertasByNegocio(negocioId = negocioId)
+                _ofertasNegocioState.update {
+                    it.copy(
+                        isLoading = false,
+                        ofertas = response.items,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
+                _ofertasNegocioState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al cargar ofertas: ${e.message}",
+                        ofertas = emptyList(),
+                        negocioId = null
+                    )
+                }
+            }
+        }
+    }
+
+    // Limpiar las ofertas del negocio cuando se sale de la pantalla
+    fun clearOfertasNegocio() {
+        _ofertasNegocioState.value = OfertasNegocioState()
     }
     fun loadNextPageOfNegocios() {
         viewModelScope.launch {
