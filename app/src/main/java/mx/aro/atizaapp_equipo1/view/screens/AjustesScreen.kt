@@ -116,8 +116,6 @@ fun AjustesScreen(
                 curp = "EELG050828HMCSNBA7",
                 fechaNacimiento = "2005-08-28",
                 entidadRegistro = "MEXICO",
-                onSuccess = { res -> println("Success: $res") },
-                onError = { err -> println("Error: $err") },
                 nombre = "Gabriel Esperilla Leon"
             )
         }

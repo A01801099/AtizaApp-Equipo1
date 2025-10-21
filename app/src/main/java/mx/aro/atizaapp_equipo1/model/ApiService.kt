@@ -30,6 +30,21 @@ data class CreateAccountResponse (
     val usuario: Usuario
 )
 
+// Clase para errores de la API
+data class ApiErrorResponse(
+    val error: String,
+    val message: String? = null,
+    val details: Map<String, Any>? = null,
+    val expected: String? = null,
+    val provided: String? = null,
+    val proveedor: Map<String, Any>? = null,
+    val status: Int? = null,
+    val data: Any? = null,
+    val code: String? = null,
+    val providerValue: String? = null,
+    val sqlState: String? = null
+)
+
 data class Usuario (
     val id: Int,                  // auto_increment → usa Long por seguridad
     val correo: String,

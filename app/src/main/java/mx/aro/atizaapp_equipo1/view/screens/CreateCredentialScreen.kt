@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
@@ -47,10 +48,24 @@ fun CreateCredentialScreen(
     var fechaNacimiento by remember { mutableStateOf("") }
 
     var showEntidadMenu by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
+    val scrollState = rememberScrollState()
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
+
+    // Observar el estado de creación de credencial
+    val createState by appVM.createCredentialState.collectAsStateWithLifecycle()
+
+    // Manejar estados de éxito y error
+    LaunchedEffect(createState) {
+        if (createState.success) {
+            showSuccessDialog = true
+        } else if (createState.errorTitle != null) {
+            showErrorDialog = true
+        }
+    }
 
     // Lista de entidades federativas según el catálogo del CURP
     val entidadesFederativas = listOf(
@@ -295,22 +310,7 @@ fun CreateCredentialScreen(
                                     nombre = nombreCompleto,
                                     curp = curp,
                                     fechaNacimiento = fechaNacimiento,
-                                    entidadRegistro = entidadRegistro,
-                                    onSuccess = { response ->
-                                        Toast.makeText(
-                                            context,
-                                            "Cuenta creada exitosamente",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        onDone()
-                                    },
-                                    onError = { error ->
-                                        Toast.makeText(
-                                            context,
-                                            "Error al crear la cuenta: ${error.message}",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
+                                    entidadRegistro = entidadRegistro
                                 )
                             }
                         }
@@ -319,7 +319,8 @@ fun CreateCredentialScreen(
                         .fillMaxWidth()
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = purple)
+                    colors = ButtonDefaults.buttonColors(containerColor = purple),
+                    enabled = !createState.isLoading
                 ) {
                     Text("Crear Credencial")
                 }
@@ -332,6 +333,161 @@ fun CreateCredentialScreen(
                     Text("Logout")
                 }
             }
+        }
+
+        // Overlay de Loading - Cubre todo el formulario mientras se valida
+        if (createState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable(enabled = false) { }, // Bloquear interacción
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .padding(32.dp)
+                        .wrapContentSize(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = white),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(64.dp),
+                            color = purple,
+                            strokeWidth = 6.dp
+                        )
+
+                        Text(
+                            text = "Validando Datos",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = purple
+                        )
+
+                        Text(
+                            text = "Estamos verificando la información ingresada.\nEste proceso podría tomar varios segundos.\nPor favor, espere...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Diálogo de Éxito
+        if (showSuccessDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showSuccessDialog = false
+                    appVM.clearCreateCredentialState()
+                    onDone()
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = purple,
+                        modifier = Modifier.size(48.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = "¡Credencial Creada!",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Tu credencial ha sido creada exitosamente y verificada con el registro oficial de CURP.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showSuccessDialog = false
+                            appVM.clearCreateCredentialState()
+                            onDone()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = purple)
+                    ) {
+                        Text("Continuar")
+                    }
+                },
+                containerColor = white,
+                shape = RoundedCornerShape(16.dp)
+            )
+        }
+
+        // Diálogo de Error
+        if (showErrorDialog && createState.errorTitle != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    showErrorDialog = false
+                    appVM.clearCreateCredentialState()
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(48.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = createState.errorTitle ?: "Error",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
+                text = {
+                    Text(
+                        text = createState.errorMessage ?: "Ocurrió un error desconocido.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showErrorDialog = false
+                            appVM.clearCreateCredentialState()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Entendido")
+                    }
+                },
+                dismissButton = {
+                    if (createState.canRetry) {
+                        TextButton(
+                            onClick = {
+                                showErrorDialog = false
+                                appVM.clearCreateCredentialState()
+                                // Reintentar con los mismos datos
+                                val nombreCompleto = "$nombre $apellidoPaterno $apellidoMaterno".trim()
+                                appVM.createAccount(
+                                    nombre = nombreCompleto,
+                                    curp = curp,
+                                    fechaNacimiento = fechaNacimiento,
+                                    entidadRegistro = entidadRegistro
+                                )
+                            }
+                        ) {
+                            Text("Reintentar")
+                        }
+                    }
+                },
+                containerColor = white,
+                shape = RoundedCornerShape(16.dp)
+            )
         }
     }
 }

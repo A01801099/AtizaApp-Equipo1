@@ -73,6 +73,15 @@ data class ForgotPasswordState(
     val error: String? = null
 )
 
+// Data class para el estado de creación de credencial
+data class CreateCredentialState(
+    val isLoading: Boolean = false,
+    val success: Boolean = false,
+    val errorTitle: String? = null,
+    val errorMessage: String? = null,
+    val canRetry: Boolean = false  // Indica si se puede mostrar botón "Reintentar"
+)
+
 class AppVM: ViewModel() {
 
     //API-ATIZAAP-API
@@ -109,6 +118,10 @@ class AppVM: ViewModel() {
     // StateFlow para la recuperación de contraseña
     private val _forgotPasswordState = MutableStateFlow(ForgotPasswordState())
     val forgotPasswordState = _forgotPasswordState.asStateFlow()
+
+    // StateFlow para la creación de credencial
+    private val _createCredentialState = MutableStateFlow(CreateCredentialState())
+    val createCredentialState = _createCredentialState.asStateFlow()
 
 
 
@@ -219,20 +232,37 @@ class AppVM: ViewModel() {
         nombre: String,
         curp: String,
         fechaNacimiento: String,
-        entidadRegistro: String,
-        onSuccess: (CreateAccountResponse) -> Unit,
-        onError: (Throwable) -> Unit
+        entidadRegistro: String
     ) {
         viewModelScope.launch {
+            // Resetear estado y mostrar loading
+            _createCredentialState.update {
+                CreateCredentialState(isLoading = true)
+            }
+
             try {
                 val email = auth.currentUser?.email
 
                 if(email == null){
-                    throw Exception("Email no encontrado")
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = "Error de Autenticación",
+                            errorMessage = "No se pudo obtener el correo electrónico. Por favor, inicia sesión nuevamente."
+                        )
+                    }
+                    return@launch
                 }
 
                 if(nombre.isBlank()){
-                    throw Exception("El nombre no puede estar vacío")
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = "Campo Requerido",
+                            errorMessage = "El nombre completo es obligatorio."
+                        )
+                    }
+                    return@launch
                 }
 
                 val body = CreateAccountRequest(
@@ -244,11 +274,194 @@ class AppVM: ViewModel() {
                 )
 
                 val response = api.createAccount(body)
-                onSuccess(response)
+
+                // ✅ Éxito: 201 Created
+                _createCredentialState.update {
+                    it.copy(
+                        isLoading = false,
+                        success = true,
+                        errorTitle = null,
+                        errorMessage = null
+                    )
+                }
+
+            } catch (e: retrofit2.HttpException) {
+                // Manejar errores HTTP de la API
+                handleApiError(e)
+            } catch (e: java.net.UnknownHostException) {
+                _createCredentialState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorTitle = "Sin Conexión",
+                        errorMessage = "No hay conexión a Internet. Por favor, verifica tu conexión y vuelve a intentar.",
+                        canRetry = true  // Puede reintentar
+                    )
+                }
+            } catch (e: java.net.SocketTimeoutException) {
+                _createCredentialState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorTitle = "Tiempo de Espera Agotado",
+                        errorMessage = "La verificación está tardando más de lo normal. Por favor, intenta nuevamente mas tarde.",
+                        canRetry = true  // Puede reintentar
+                    )
+                }
             } catch (e: Exception) {
-                onError(e)
+                _createCredentialState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorTitle = "Error Inesperado",
+                        errorMessage = "Ocurrió un error inesperado. Por favor, intenta nuevamente.",
+                        canRetry = false
+                    )
+                }
             }
         }
+    }
+
+    private fun handleApiError(exception: retrofit2.HttpException) {
+        try {
+            val errorBody = exception.response()?.errorBody()?.string()
+            val gson = com.google.gson.Gson()
+            val apiError = gson.fromJson(errorBody, mx.aro.atizaapp_equipo1.model.ApiErrorResponse::class.java)
+
+            val statusCode = exception.code()
+
+            when (statusCode) {
+                400 -> {
+                    // Bad Request - Parámetros inválidos o Email requerido
+                    if (apiError.error.contains("Email requerido", ignoreCase = true)) {
+                        _createCredentialState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorTitle = "Email Requerido",
+                                errorMessage = "Debe proporcionar un email válido para continuar."
+                            )
+                        }
+                    } else {
+                        _createCredentialState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorTitle = "Datos Inválidos",
+                                errorMessage = "Por favor, verifica que todos los campos estén correctamente llenados."
+                            )
+                        }
+                    }
+                }
+
+                409 -> {
+                    // Conflict - Duplicados
+                    val message = when {
+                        apiError.error.contains("CURP y correo ya registrados", ignoreCase = true) ->
+                            "Tu CURP y correo electrónico ya están registrados en el sistema."
+                        apiError.error.contains("CURP ya registrada", ignoreCase = true) ->
+                            "Esta CURP ya está asociada a una cuenta existente."
+                        apiError.error.contains("Correo ya registrado", ignoreCase = true) ->
+                            "Este correo electrónico ya está asociado a una cuenta existente."
+                        else ->
+                            "Ya existe una cuenta con estos datos."
+                    }
+
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = "Registro Duplicado",
+                            errorMessage = message
+                        )
+                    }
+                }
+
+                422 -> {
+                    // Unprocessable Entity - Errores de validación con VerificaMex
+                    val (title, message) = when {
+                        apiError.error.contains("CURP no verificado", ignoreCase = true) ->
+                            "CURP No Verificada" to "No se encontraron registros válidos para la CURP proporcionada en el sistema oficial."
+
+                        apiError.error.contains("CURP no coincide", ignoreCase = true) ->
+                            "Datos No Coinciden" to "Los datos proporcionados no coinciden con los registros oficiales de CURP. Por favor, verifica la información ingresada."
+
+                        apiError.error.contains("Formato de fecha inválido", ignoreCase = true) ->
+                            "Datos No Coinciden" to "Los datos proporcionados no coinciden con los registros oficiales de CURP. Por favor, verifica la información ingresada."
+
+                        apiError.error.contains("Fecha de nacimiento no coincide", ignoreCase = true) ->
+                            "Datos No Coinciden" to "Los datos proporcionados no coinciden con los registros oficiales de CURP. Por favor, verifica la información ingresada.\n\nSi consideras que se trata de un error, por favor contáctanos."
+
+                        apiError.error.contains("Entidad de registro no coincide", ignoreCase = true) ->
+                            "Datos No Coinciden" to "Los datos proporcionados no coinciden con los registros oficiales de CURP. Por favor, verifica la información ingresada."
+
+                        else ->
+                            "Error de Validación" to "Los datos proporcionados no pasaron la validación oficial. Por favor, verifica la información ingresada."
+                    }
+
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = title,
+                            errorMessage = message
+                        )
+                    }
+                }
+
+                502 -> {
+                    // Bad Gateway - Error de VerificaMex
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = "Servicio de Verificación No Disponible",
+                            errorMessage = "No se pudo verificar la CURP con el proveedor oficial. Por favor, intenta nuevamente más tarde.",
+                            canRetry = true  // Puede reintentar
+                        )
+                    }
+                }
+
+                503 -> {
+                    // Service Unavailable - BD no disponible
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = "Servicio Temporalmente No Disponible",
+                            errorMessage = "El servicio no está disponible en este momento. Por favor, intenta nuevamente en unos momentos.",
+                            canRetry = true  // Puede reintentar
+                        )
+                    }
+                }
+
+                504 -> {
+                    // Gateway Timeout - VerificaMex no encontró la CURP
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = "CURP No Encontrada",
+                            errorMessage = "No se pudo verificar la CURP con el proveedor. Por favor, verifica tus datos e intenta nuevamente."
+                        )
+                    }
+                }
+
+                else -> {
+                    // 500 o cualquier otro error
+                    _createCredentialState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorTitle = "Error del Servidor",
+                            errorMessage = "Ocurrió un error en el servidor. Por favor, intenta nuevamente más tarde."
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // Si falla el parseo del error
+            _createCredentialState.update {
+                it.copy(
+                    isLoading = false,
+                    errorTitle = "Error de Comunicación",
+                    errorMessage = "Ocurrió un error al procesar la solicitud. Por favor, intenta nuevamente."
+                )
+            }
+        }
+    }
+
+    fun clearCreateCredentialState() {
+        _createCredentialState.value = CreateCredentialState()
     }
 
     // Función para obtener datos COMPLETOS del usuario (para pantalla Mi Credencial)
