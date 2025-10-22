@@ -212,7 +212,10 @@ fun NegocioItem(negocio: Negocio, navController: NavHostController) {
             .clickable { navController.navigate("explorar_comercio/${negocio.id}") },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Row(modifier = Modifier.padding(8.dp)) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             AsyncImage(
                 model = convertGoogleDriveUrl(negocio.imagen),
                 contentDescription = negocio.nombre,
