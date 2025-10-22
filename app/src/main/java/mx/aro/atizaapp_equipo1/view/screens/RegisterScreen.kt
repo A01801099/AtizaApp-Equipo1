@@ -43,6 +43,7 @@ fun RegisterScreen(
     var showPassword by remember { mutableStateOf(false) }
 
     val authState by appVM.authState.collectAsStateWithLifecycle()
+    val isNetworkAvailable by appVM.isNetworkAvailable.collectAsState()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -119,7 +120,17 @@ fun RegisterScreen(
                     onDone = {
                         keyboardController?.hide()
                         focusManager.clearFocus()
-                        appVM.hacerSignUp(email, password)
+
+                        // Verificar conexión antes de registrar
+                        if (!isNetworkAvailable) {
+                            Toast.makeText(
+                                context,
+                                "Sin conexión a Internet. Por favor, verifica tu conexión para crear una cuenta.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            appVM.hacerSignUp(email, password)
+                        }
                     }
                 ),
                 singleLine = true,
@@ -135,7 +146,18 @@ fun RegisterScreen(
             )
 
             Button(
-                onClick = { appVM.hacerSignUp(email, password) },
+                onClick = {
+                    // Verificar conexión antes de registrar
+                    if (!isNetworkAvailable) {
+                        Toast.makeText(
+                            context,
+                            "Sin conexión a Internet. Por favor, verifica tu conexión para crear una cuenta.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        appVM.hacerSignUp(email, password)
+                    }
+                },
                 enabled = !authState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()

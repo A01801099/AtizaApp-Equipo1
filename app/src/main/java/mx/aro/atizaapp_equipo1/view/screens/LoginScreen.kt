@@ -61,6 +61,7 @@ fun LoginScreen(
     var showPassword by remember { mutableStateOf(false) }
 
     val authState by appVM.authState.collectAsStateWithLifecycle()
+    val isNetworkAvailable by appVM.isNetworkAvailable.collectAsState()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -70,13 +71,36 @@ fun LoginScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
+            // Verificar conexión ANTES de procesar el resultado
+            if (!isNetworkAvailable) {
+                Toast.makeText(
+                    context,
+                    "Sin conexión a Internet. Por favor, verifica tu conexión y vuelve a intentar.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@rememberLauncherForActivityResult
+            }
+
+            val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
             val account = task.getResult(ApiException::class.java)
             val credential = GoogleAuthProvider.getCredential(account.idToken, null)
             appVM.hacerLoginGoogle(credential)
+        } catch (e: ApiException) {
+            val errorMessage = when (e.statusCode) {
+                com.google.android.gms.common.api.CommonStatusCodes.NETWORK_ERROR -> {
+                    "Sin conexión a Internet. Por favor, verifica tu conexión y vuelve a intentar."
+                }
+                com.google.android.gms.common.api.CommonStatusCodes.CANCELED -> {
+                    "Inicio de sesión cancelado."
+                }
+                else -> {
+                    "Error en login con Google: ${e.localizedMessage}"
+                }
+            }
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "Error en login con Google: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error en el login: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -201,6 +225,16 @@ fun LoginScreen(
             // Botón Google
             OutlinedButton(
                 onClick = {
+                    // Verificar conexión ANTES de iniciar el flujo de Google Sign-In
+                    if (!isNetworkAvailable) {
+                        Toast.makeText(
+                            context,
+                            "Sin conexión a Internet. Por favor, verifica tu conexión para iniciar sesión con Google.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@OutlinedButton
+                    }
+
                     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestIdToken(TOKEN_WEB)
                         .requestEmail()
