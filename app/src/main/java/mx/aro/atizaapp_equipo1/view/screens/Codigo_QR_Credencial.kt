@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -187,12 +188,30 @@ fun CodigoQRCredencialScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         Text(
-                            text = "Credencial Digital",
+                            text = "Credencial Digital: ",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
+                        idFormateado?.let { id ->
+                            Text(
+                                text = id,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = androidx.compose.ui.graphics.Color.Black,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.offset(y = 6.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(48.dp))
+                        Text(text = "Nombre: ${usuario.nombre}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center)
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(text = "Correo: ${usuario.correo}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center)
+
 
                         Spacer(modifier = Modifier.height(16.dp))
                     }
