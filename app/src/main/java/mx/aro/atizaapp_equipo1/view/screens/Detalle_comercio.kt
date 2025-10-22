@@ -122,7 +122,7 @@ fun OfertaCard(oferta: Oferta, modifier: Modifier = Modifier) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Fecha de inicio
+                // Fecha de vencimiento
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -134,18 +134,10 @@ fun OfertaCard(oferta: Oferta, modifier: Modifier = Modifier) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = formatFecha(oferta.fechaInicio),
+                        text = "Vencimiento hasta ${formatFecha(oferta.fechaFin ?: " ")}",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    oferta.fechaFin?.let { fechaFin ->
-                        Text(
-                            text = " - ${formatFecha(fechaFin)}",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
 
                 // Precio si existe y no es 0

@@ -1,7 +1,6 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,23 +15,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,9 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,10 +47,6 @@ fun AjustesScreen(
 
     // 🌓 Leer modo oscuro guardado al iniciar
     var darkModeEnabled by rememberSaveable { mutableStateOf(ThemePrefs.isDarkMode(context)) }
-
-    var notificationsEnabled by rememberSaveable { mutableStateOf(true) }
-    var fontScale by rememberSaveable { mutableStateOf(1f) }
-    var accessibleMode by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -94,59 +81,18 @@ fun AjustesScreen(
                 }
             )
 
-            AjusteSlider(
-                title = "Tamaño de texto",
-                value = fontScale,
-                onValueChange = { fontScale = it }
-            )
+            Spacer(Modifier.height(24.dp))
 
             // ======================
-            // 🔔 SECCIÓN: Notificaciones
+            // 🔓 SECCIÓN: Sesión
             // ======================
             Text(
-                text = "Notificaciones",
+                text = "Sesión",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(16.dp)
             )
 
-            AjusteItemSwitch(
-                title = "Recibir notificaciones",
-                checked = notificationsEnabled,
-                onCheckedChange = { notificationsEnabled = it }
-            )
-
-            // ======================
-            // ♿ SECCIÓN: Accesibilidad
-            // ======================
-            Text(
-                text = "Accesibilidad",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(16.dp)
-            )
-
-            AjusteItemSwitch(
-                title = "Modo accesible (botones grandes)",
-                checked = accessibleMode,
-                onCheckedChange = { accessibleMode = it }
-            )
-
-            // ======================
-            // ⚙️ SECCIÓN: Sistema
-            // ======================
-            Text(
-                text = "Sistema",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(16.dp)
-            )
-
-            AjusteButton(
-                title = "Limpiar caché",
-                onClick = {
-                    Toast.makeText(context, "Caché limpiada", Toast.LENGTH_SHORT).show()
-                }
-            )
-
-            // ✅ BOTÓN DE LOGOUT CORREGIDO
+            // ✅ BOTÓN DE LOGOUT
             ElevatedButton(
                 onClick = { appVM.hacerLogout(context) },
                 modifier = Modifier
@@ -186,42 +132,5 @@ fun AjusteItemSwitch(
     ) {
         Text(title)
         Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
-@Composable
-fun AjusteSlider(
-    title: String,
-    value: Float,
-    onValueChange: (Float) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Text(title)
-        Slider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = 0.8f..1.5f,
-            steps = 4
-        )
-        Text("Vista previa", fontSize = (16 * value).sp)
-    }
-}
-
-@Composable
-fun AjusteButton(
-    title: String,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Text(title)
     }
 }
