@@ -916,6 +916,24 @@ class AppVM: ViewModel() {
             )
         }
     }
+
+    /**
+     * Configura el modo offline al iniciar la app sin conexión
+     * Permite al usuario acceder a la app usando datos en caché
+     */
+    fun setOfflineMode() {
+        _credencialChecked.value = true
+        _verificationState.update {
+            it.copy(
+                isLoading = false,
+                hasCredencial = true,  // Asumir que tiene credencial (beneficio de la duda)
+                error = "Sin conexión. Usando datos locales.",
+                isNetworkError = true
+            )
+        }
+        Log.d("AppVM", "🔌 Modo offline activado - Usuario puede acceder con datos en caché")
+    }
+
     // Obtener un negocio por ID
     fun getNegocioById(id: Int, onSuccess: (Negocio) -> Unit, onError: (Throwable) -> Unit) {
         viewModelScope.launch {

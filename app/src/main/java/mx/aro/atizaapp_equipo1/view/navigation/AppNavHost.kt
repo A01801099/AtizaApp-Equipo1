@@ -16,11 +16,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,18 +48,33 @@ fun AppNavHost(appVM: AppVM) {
     val navController = rememberNavController()
     val estaLoggeado = appVM.estaLoggeado.collectAsState().value
     val verificationState = appVM.verificationState.collectAsState().value
+    val credencialChecked = appVM.credencialChecked.collectAsState().value
     val isNetworkAvailable = appVM.isNetworkAvailable.collectAsState().value
 
-    // ❌ ELIMINADO: Verificación automática de credencial al inicio
-    // Cada pantalla carga sus propios datos cuando es necesario (lazy loading)
-    // Esto reduce llamadas innecesarias a la API y mejora el rendimiento
+    // ✅ Verificación automática de credencial al inicio (solo con conexión)
+    // Solo se ejecuta si hay red disponible para evitar errores innecesarios
+    LaunchedEffect(estaLoggeado, credencialChecked, isNetworkAvailable) {
+        if (estaLoggeado && !credencialChecked) {
+            if (isNetworkAvailable) {
+                // ✅ Hay red: verificar credencial con el backend
+                appVM.verificarCredencial()
+            } else {
+                // ⚠️ Sin red: asumir que tiene credencial (modo offline)
+                // Esto permite usar la app offline sin bloquear al usuario
+                appVM.setOfflineMode()
+            }
+        }
+    }
 
     // Determinar la pantalla inicial según el flujo
     // Esta lógica es REACTIVA: cuando cambian los estados, NavHost se re-renderiza
     // y ajusta la navegación automáticamente SIN necesidad de navegación programática
     val startDestination = when {
         !estaLoggeado -> "login"
-        else -> "explorar"  // Si está loggeado, ir directamente a explorar
+        !credencialChecked -> "loading"  // Mostrar loading mientras verifica
+        verificationState.hasCredencial -> "explorar"
+        verificationState.isNetworkError -> "explorar"  // ⚠️ Sin red: permitir acceso offline
+        else -> "register_credencial"  // Sin credencial: ir a registro
     }
 
     // Obtenemos la ruta actual para decidir si mostrar el BottomBar
@@ -106,7 +121,7 @@ fun AppNavHost(appVM: AppVM) {
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // LOADING
+            // LOADING (Ya no se usa, pero se deja por si se necesita en el futuro)
             composable("loading") {
                 LoadingScreen(message = "Verificando credencial...")
             }
