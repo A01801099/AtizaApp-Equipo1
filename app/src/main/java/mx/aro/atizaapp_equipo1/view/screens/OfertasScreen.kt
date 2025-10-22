@@ -97,7 +97,10 @@ fun OfertasScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                val filtered = state.ofertas.filter { it.titulo.contains(searchText, ignoreCase = true) }
+                val filtered = state.ofertas.filter { oferta ->
+                    oferta.titulo.contains(searchText, ignoreCase = true) ||
+                            oferta.descripcion.contains(searchText, ignoreCase = true)
+                }
 
                 if (filtered.isEmpty()) {
                     Box(
