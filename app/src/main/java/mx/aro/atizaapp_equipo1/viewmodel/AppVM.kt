@@ -1125,4 +1125,51 @@ class AppVM: ViewModel() {
     fun clearForgotPasswordState() {
         _forgotPasswordState.value = ForgotPasswordState()
     }
+    fun preloadAllNegocios() {
+        viewModelScope.launch {
+            val allNegocios = mutableListOf<Negocio>()
+            var nextCursor: String? = null
+            var endReached = false
+
+            while (!endReached) {
+                try {
+                    val response = api.getNegocios(cursor = nextCursor)
+                    allNegocios.addAll(response.items)
+
+                    // Guardar en cache COMPLETA (sobrescribe cache previa)
+                    negociosRepository.saveNegocios(allNegocios)
+
+                    // Preparar siguiente página
+                    nextCursor = response.nextCursor
+                    endReached = nextCursor == null
+                } catch (e: Exception) {
+                    Log.e("AppVM", "Error al precargar negocios: ${e.message}")
+                    endReached = true
+                }
+            }
+
+            // Actualizar estado de la UI
+            _negociosState.update {
+                it.copy(
+                    isLoadingInitial = false,
+                    negocios = allNegocios,
+                    nextCursor = null,
+                    endReached = true
+                )
+            }
+
+            Log.d("AppVM", "✅ Precarga de negocios completada: ${allNegocios.size} items")
+        }
+
+    }
+    fun setNegociosFromCache(cached: List<Negocio>) {
+        _negociosState.value = _negociosState.value.copy(
+            negocios = cached,
+            isLoadingInitial = false,
+            isLoadingMore = false
+            // NO ponemos endReached = true, para que loadNextPageOfNegocios pueda seguir cargando
+        )
+    }
+
+
 }

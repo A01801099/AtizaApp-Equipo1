@@ -1,6 +1,7 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -44,6 +45,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,7 +62,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import mx.aro.atizaapp_equipo1.R
+import mx.aro.atizaapp_equipo1.model.Negocio
+import mx.aro.atizaapp_equipo1.model.NegociosRepository
 import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
 import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
@@ -69,10 +74,25 @@ import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
+// --------- PANTALLA EXPLORAR COMERCIOS (NEGOCIOS REALES) ---------
+
 fun ExplorarComerciosScreen(
     navController: NavHostController,
-    appVM: AppVM = viewModel()
+    appVM: AppVM = viewModel(),
+    context: Context = LocalContext.current
 ) {
+    val repo = remember { NegociosRepository(context) }
+
+    LaunchedEffect(Unit) {
+        if (repo.hasCache() && appVM.negociosState.value.negocios.isEmpty()) {
+            val cached = repo.getNegocios()
+            appVM.setNegociosFromCache(cached)
+            appVM.loadNextPageOfNegocios()
+        } else {
+            appVM.loadNextPageOfNegocios()
+        }
+    }
+
     val state by appVM.negociosState.collectAsState()
     var searchText by remember { mutableStateOf("") }
     var selectedCategoria by remember { mutableStateOf("Todos") }
@@ -94,7 +114,7 @@ fun ExplorarComerciosScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Barra de búsqueda
+            // 🔍 Barra de búsqueda
             TextField(
                 value = searchText,
                 onValueChange = { searchText = it },
@@ -105,7 +125,7 @@ fun ExplorarComerciosScreen(
                     .padding(8.dp)
             )
 
-            // Botones de categorías
+            // 🏷️ Botones de categorías
             Row(
                 modifier = Modifier
                     .horizontalScroll(rememberScrollState())
@@ -125,7 +145,7 @@ fun ExplorarComerciosScreen(
                 }
             }
 
-            // Carga inicial de negocios
+            // ⏳ Carga inicial
             if (state.isLoadingInitial) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -134,21 +154,24 @@ fun ExplorarComerciosScreen(
                     CircularProgressIndicator()
                 }
             } else {
+                val filtered = state.negocios.filter { negocio ->
+                    negocio.nombre.contains(searchText, ignoreCase = true) &&
+                            (selectedCategoria == "Todos" || negocio.tipo?.equals(
+                                selectedCategoria,
+                                ignoreCase = true
+                            ) == true)
+                }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val filtered = state.negocios.filter { negocio ->
-                        negocio.nombre.contains(searchText, ignoreCase = true) &&
-                                (selectedCategoria == "Todos" || negocio.tipo.equals(selectedCategoria, ignoreCase = true))
-                    }
-
                     items(filtered) { negocio ->
                         NegocioItem(negocio, navController)
                     }
 
-                    // Spinner para paginación
+                    // 🔁 Indicador de carga adicional
                     if (state.isLoadingMore) {
                         item {
                             Box(
@@ -161,18 +184,17 @@ fun ExplorarComerciosScreen(
                             }
                         }
                     }
+                }
 
-                    // Cargar siguiente página automáticamente
+                // 🚀 Cargar más y guardar en caché
+                LaunchedEffect(state.nextCursor, state.isLoadingMore) {
                     if (!state.endReached && !state.isLoadingMore) {
-                        item {
-                            LaunchedEffect(Unit) {
-                                appVM.loadNextPageOfNegocios()
-                            }
-                        }
+                        appVM.loadNextPageOfNegocios()
+                        repo.saveNegocios(appVM.negociosState.value.negocios)
                     }
                 }
 
-                // Mostrar error si existe
+                // ⚠️ Mostrar error
                 state.error?.let { errorMsg ->
                     Text(errorMsg, color = Color.Red, modifier = Modifier.padding(8.dp))
                 }
@@ -181,9 +203,9 @@ fun ExplorarComerciosScreen(
     }
 }
 
-// --------- ITEM DE CADA NEGOCIO ---------
+// -------------------- ITEM DE CADA NEGOCIO --------------------
 @Composable
-fun NegocioItem(negocio: mx.aro.atizaapp_equipo1.model.Negocio, navController: NavHostController) {
+fun NegocioItem(negocio: Negocio, navController: NavHostController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -207,7 +229,7 @@ fun NegocioItem(negocio: mx.aro.atizaapp_equipo1.model.Negocio, navController: N
     }
 }
 
-// --------- BOTTOM NAVIGATION BAR ---------
+// -------------------- BOTTOM NAVIGATION BAR --------------------
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -228,7 +250,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.CardMembership, contentDescription = "Mi credencial") },
-            label = { Text("Mi credencial",textAlign = TextAlign.Center,) },
+            label = { Text("Mi credencial", textAlign = TextAlign.Center) },
             selected = currentRoute == "mi_credencial",
             onClick = { navController.navigate("mi_credencial") }
         )
@@ -247,14 +269,16 @@ fun BottomNavigationBar(navController: NavHostController) {
     }
 }
 
-// --------- PREVIEW ---------
+// -------------------- PREVIEW --------------------
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun ExplorarComerciosPreview() {
     val fakeNavController = rememberNavController()
-    val fakeViewModel = AppVM() // solo visual, permitido en Preview
+    val fakeViewModel = AppVM() // solo visual
     AtizaAppEquipo1Theme {
         ExplorarComerciosScreen(navController = fakeNavController, appVM = fakeViewModel)
     }
 }
+
+
