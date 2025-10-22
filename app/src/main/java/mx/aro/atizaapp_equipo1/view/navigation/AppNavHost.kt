@@ -1,10 +1,18 @@
 package mx.aro.atizaapp_equipo1.view.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,7 +20,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -36,26 +47,19 @@ import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 fun AppNavHost(appVM: AppVM) {
     val navController = rememberNavController()
     val estaLoggeado = appVM.estaLoggeado.collectAsState().value
-    val verificationState = appVM.verificationState.collectAsState().value // ← Cambio aquí
-    val credencialChecked = appVM.credencialChecked.collectAsState().value
+    val verificationState = appVM.verificationState.collectAsState().value
+    val isNetworkAvailable = appVM.isNetworkAvailable.collectAsState().value
 
-    // Verificar credencial cuando el usuario está loggeado
-    // Se ejecuta cuando el usuario vuelve a ingresar a la app después de cerrarla,
-    // el login en Firebase persiste pero el state de hasCredencial tiene que ser consultado cada que se abre la app
-    androidx.compose.runtime.LaunchedEffect(estaLoggeado, credencialChecked) {
-        if (estaLoggeado && !credencialChecked) {
-            appVM.verificarCredencial()
-        }
-    }
+    // ❌ ELIMINADO: Verificación automática de credencial al inicio
+    // Cada pantalla carga sus propios datos cuando es necesario (lazy loading)
+    // Esto reduce llamadas innecesarias a la API y mejora el rendimiento
 
     // Determinar la pantalla inicial según el flujo
     // Esta lógica es REACTIVA: cuando cambian los estados, NavHost se re-renderiza
     // y ajusta la navegación automáticamente SIN necesidad de navegación programática
     val startDestination = when {
         !estaLoggeado -> "login"
-        !credencialChecked -> "loading" // Mostrar pantalla de carga mientras se verifica
-        verificationState.hasCredencial -> "explorar"
-        else -> "register_credencial"
+        else -> "explorar"  // Si está loggeado, ir directamente a explorar
     }
 
     // Obtenemos la ruta actual para decidir si mostrar el BottomBar
@@ -73,7 +77,24 @@ fun AppNavHost(appVM: AppVM) {
         "beneficios"
     )
 
+    // Pantallas donde se debe mostrar el banner de offline
+    val showOfflineBanner = estaLoggeado && !isNetworkAvailable && currentRoute in listOf(
+        "explorar",
+        "mi_credencial",
+        "contacto",
+        "codigo_qr_credencial",
+        "explorar_comercio/{id}",
+        "ajustes",
+        "beneficios"
+    )
+
     Scaffold(
+        topBar = {
+            // Banner de modo offline global
+            if (showOfflineBanner) {
+                OfflineBanner()
+            }
+        },
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(navController)
@@ -160,7 +181,7 @@ fun AppNavHost(appVM: AppVM) {
                 ContactoScreen(navController = navController)
             }
             composable("codigo_qr_credencial") {
-                CodigoQRCredencialScreen(navController = navController)
+                CodigoQRCredencialScreen(navController = navController, appVM = appVM)
             }
 
             composable("beneficios") {
@@ -182,6 +203,49 @@ fun AppNavHost(appVM: AppVM) {
 
             composable("ajustes"){
                 AjustesScreen(navController = navController, appVM = appVM)
+            }
+        }
+    }
+}
+
+/**
+ * Banner de modo offline que se muestra en la parte superior de la app
+ * Indica al usuario que está sin conexión y solo puede acceder a la credencial
+ */
+@Composable
+private fun OfflineBanner() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFFF6F00)) // Naranja oscuro para mejor visibilidad
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.CloudOff,
+                contentDescription = "Sin conexión",
+                tint = Color.White,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = "🔌 Modo Sin Conexión",
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Solo credencial disponible offline",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 13.sp
+                )
             }
         }
     }

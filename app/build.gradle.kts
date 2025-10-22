@@ -41,6 +41,12 @@ android {
 }
 
 dependencies {
+    // DataStore para persistencia local
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Security Crypto para cifrado
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.google.maps.android:maps-compose:4.3.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")

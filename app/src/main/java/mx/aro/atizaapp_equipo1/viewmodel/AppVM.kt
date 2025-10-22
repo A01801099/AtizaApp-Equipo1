@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 import mx.aro.atizaapp_equipo1.model.ApiClient
 import mx.aro.atizaapp_equipo1.model.CreateAccountRequest
 import mx.aro.atizaapp_equipo1.model.CreateAccountResponse
+import mx.aro.atizaapp_equipo1.model.CredencialRepository
 import mx.aro.atizaapp_equipo1.model.Negocio
 import mx.aro.atizaapp_equipo1.model.NegociosApiResponse
 
@@ -35,6 +37,8 @@ import androidx.room.util.copy
 import mx.aro.atizaapp_equipo1.model.Oferta
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
+import mx.aro.atizaapp_equipo1.utils.NetworkUtils
+
 // Data class para representar el estado de la UI de autenticación
 data class AuthState(
     val isLoading: Boolean = false,
@@ -110,6 +114,50 @@ class AppVM: ViewModel() {
 
     private val auth: FirebaseAuth = Firebase.auth
 
+    // Repository para persistencia local de credencial
+    private lateinit var credencialRepository: CredencialRepository
+
+    // Contexto de aplicación guardado para verificaciones de red
+    private lateinit var applicationContext: Context
+
+    /**
+     * Inicializar el ViewModel con el contexto de la aplicación
+     * DEBE llamarse desde MainActivity.onCreate()
+     */
+    fun initialize(context: Context) {
+        applicationContext = context.applicationContext
+        credencialRepository = CredencialRepository(applicationContext)
+
+        // PRIMERO: Verificar estado inicial de red de forma síncrona
+        val initialNetworkState = NetworkUtils.isNetworkAvailable(applicationContext)
+        _isNetworkAvailable.value = initialNetworkState
+        Log.d("AppVM", "🔍 Estado inicial de red (sync): ${if (initialNetworkState) "Conectado" else "Desconectado"}")
+
+        // SEGUNDO: Observar cambios en la conectividad de red
+        viewModelScope.launch {
+            NetworkUtils.observeNetworkConnectivity(applicationContext).collect { isConnected ->
+                val previousState = _isNetworkAvailable.value
+                _isNetworkAvailable.value = isConnected
+
+                Log.d("AppVM", "📶 Cambio de red detectado: $previousState → $isConnected")
+
+                // Si se recupera la conexión, intentar recargar usuario de Firebase
+                if (!previousState && isConnected) {
+                    Log.d("AppVM", "✅ Conexión recuperada - Intentando reload de Firebase")
+                    reloadFirebaseUser()
+                }
+            }
+        }
+
+        // TERCERO: Solo hacer reload inicial si hay conexión confirmada
+        if (initialNetworkState) {
+            Log.d("AppVM", "🌐 Hay conexión - Programando reload de Firebase")
+            reloadFirebaseUser()
+        } else {
+            Log.d("AppVM", "📵 Sin conexión inicial - Omitiendo reload de Firebase")
+        }
+    }
+
     private val _estaLoggeado = MutableStateFlow(auth.currentUser != null && (auth.currentUser?.isEmailVerified == true || auth.currentUser?.providerData?.any { it.providerId == "google.com" } == true))
     val estaLoggeado = _estaLoggeado.asStateFlow()
 
@@ -151,10 +199,60 @@ class AppVM: ViewModel() {
     private val _ofertasNegocioState = MutableStateFlow(OfertasNegocioState())
     val ofertasNegocioState = _ofertasNegocioState.asStateFlow()
 
+    // StateFlow para el estado de conectividad de red
+    private val _isNetworkAvailable = MutableStateFlow(true)
+    val isNetworkAvailable = _isNetworkAvailable.asStateFlow()
+
 
     init {
-        auth.currentUser?.reload()?.addOnCompleteListener {
-            _estaLoggeado.value = auth.currentUser != null && (auth.currentUser?.isEmailVerified == true || auth.currentUser?.providerData?.any { it.providerId == "google.com" } == true)
+        // Establecer estado inicial del usuario SIN recargar de Firebase
+        // El reload se hará después de initialize() cuando sepamos el estado de red
+        _estaLoggeado.value = auth.currentUser != null &&
+                (auth.currentUser?.isEmailVerified == true ||
+                        auth.currentUser?.providerData?.any { it.providerId == "google.com" } == true)
+
+        Log.d("AppVM", "AppVM inicializado - Usuario loggeado: ${_estaLoggeado.value}")
+    }
+
+    /**
+     * Recargar estado del usuario de Firebase de forma segura
+     * Solo se llama después de initialize() cuando conocemos el estado de red
+     */
+    private fun reloadFirebaseUser() {
+        viewModelScope.launch {
+            // Solo recargar si hay conexión
+            if (_isNetworkAvailable.value && auth.currentUser != null) {
+                try {
+                    auth.currentUser?.reload()?.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            _estaLoggeado.value = auth.currentUser != null &&
+                                    (auth.currentUser?.isEmailVerified == true ||
+                                            auth.currentUser?.providerData?.any { it.providerId == "google.com" } == true)
+                            Log.d("AppVM", "✅ Usuario de Firebase recargado correctamente")
+                        } else {
+                            // Verificar si el error es por red
+                            val exception = task.exception
+                            if (exception is com.google.firebase.FirebaseNetworkException) {
+                                Log.w("AppVM", "⚠️ Sin conexión al recargar usuario, usando estado local")
+                            } else {
+                                Log.w("AppVM", "⚠️ No se pudo recargar usuario: ${exception?.message}, usando estado local")
+                            }
+                        }
+                    }?.addOnFailureListener { e ->
+                        if (e is com.google.firebase.FirebaseNetworkException) {
+                            Log.w("AppVM", "⚠️ Sin conexión de red al recargar usuario")
+                        } else {
+                            Log.e("AppVM", "❌ Error al recargar usuario: ${e.message}")
+                        }
+                    }
+                } catch (e: com.google.firebase.FirebaseNetworkException) {
+                    Log.w("AppVM", "⚠️ FirebaseNetworkException capturada: ${e.message}")
+                } catch (e: Exception) {
+                    Log.e("AppVM", "❌ Excepción al recargar usuario: ${e.message}")
+                }
+            } else {
+                Log.d("AppVM", "📵 Sin conexión - Omitiendo reload de Firebase user")
+            }
         }
     }
 
@@ -281,6 +379,14 @@ class AppVM: ViewModel() {
         _estaLoggeado.value = false
         resetCredencialCheck()
 
+        // Limpiar caché local de credencial
+        viewModelScope.launch {
+            if (::credencialRepository.isInitialized) {
+                credencialRepository.clearCredencial()
+                Log.d("AppVM", "Caché de credencial limpiado en logout")
+            }
+        }
+
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(TOKEN_WEB)
             .requestEmail()
@@ -335,7 +441,12 @@ class AppVM: ViewModel() {
 
                 val response = api.createAccount(body)
 
-                // ✅ Éxito: 201 Created
+                // ✅ Éxito: 201 Created - Guardar en caché
+                if (::credencialRepository.isInitialized) {
+                    credencialRepository.saveCredencial(response.usuario)
+                    Log.d("AppVM", "Credencial creada y guardada en caché")
+                }
+
                 _createCredentialState.update {
                     it.copy(
                         isLoading = false,
@@ -524,27 +635,106 @@ class AppVM: ViewModel() {
         _createCredentialState.value = CreateCredentialState()
     }
 
+    /**
+     * Sincronizar credencial con el servidor (online)
+     * Guarda en caché si es exitoso
+     */
+    private suspend fun syncCredencial(): Boolean {
+        return try {
+            val email = auth.currentUser?.email ?: throw Exception("No autenticado")
+            val usuario = api.getMe(email)
+
+            // Guardar en caché
+            if (::credencialRepository.isInitialized) {
+                credencialRepository.saveCredencial(usuario)
+            }
+
+            // Actualizar estado
+            _credencialState.update {
+                it.copy(
+                    isLoading = false,
+                    usuario = usuario,
+                    error = null
+                )
+            }
+
+            // Actualizar ID formateado
+            usuario.id.let { id ->
+                _idFormateado.value = formatearIdUsuario(id)
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("AppVM", "Error en sincronización de credencial", e)
+            false
+        }
+    }
+
     // Función para obtener datos COMPLETOS del usuario (para pantalla Mi Credencial)
+    // Modificada para priorizar caché local y sincronizar en background
     fun getMe() {
         viewModelScope.launch {
             _credencialState.update { it.copy(isLoading = true, error = null) }
+
             try {
-                val email = auth.currentUser?.email
-
-                if (email == null) {
-                    throw Exception("Usuario no autenticado.")
-                }
-                val response = api.getMe(email)
-                _credencialState.update {
-                    it.copy(
-                        isLoading = false,
-                        usuario = response,
-                        error = null
-                    )
+                // Verificar que el repository esté inicializado
+                if (!::credencialRepository.isInitialized) {
+                    throw Exception("Repository no inicializado. Llamar initialize() primero.")
                 }
 
-                response?.id?.let { id ->
-                    _idFormateado.value = formatearIdUsuario(id)
+                // 1. PRIMERO intentar cargar del caché (rápido, < 20ms)
+                val cached = credencialRepository.getCredencial()
+
+                if (cached != null) {
+                    // Caché encontrado → mostrar inmediatamente
+                    val ageInfo = credencialRepository.formatTimestamp(cached.timestampMs)
+
+                    _credencialState.update {
+                        it.copy(
+                            isLoading = false,
+                            usuario = cached.usuario,
+                            error = if (credencialRepository.isCacheStale(hours = 1)) {
+                                "Sincronizando..."
+                            } else null
+                        )
+                    }
+
+                    // Actualizar ID formateado
+                    cached.usuario.id.let { id ->
+                        _idFormateado.value = formatearIdUsuario(id)
+                    }
+
+                    Log.d("AppVM", "Credencial cargada desde caché: $ageInfo")
+                }
+
+                // 2. Sincronizar en background si:
+                //    - No hay caché, o
+                //    - El caché tiene más de 24 horas
+                if (cached == null || credencialRepository.isCacheStale(hours = 24)) {
+                    Log.d("AppVM", "Iniciando sincronización en background...")
+
+                    val syncSuccess = syncCredencial()
+
+                    if (!syncSuccess && cached == null) {
+                        // Si falla sincronización Y no hay caché → mostrar error
+                        _credencialState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = "No se pudo obtener la credencial. Verifica tu conexión.",
+                                usuario = null
+                            )
+                        }
+                    } else if (!syncSuccess && cached != null) {
+                        // Si falla sincronización PERO hay caché → mostrar advertencia
+                        _credencialState.update {
+                            it.copy(
+                                error = "Modo offline - ${credencialRepository.formatTimestamp(cached.timestampMs)}"
+                            )
+                        }
+                    }
+                } else {
+                    // Caché reciente, no sincronizar
+                    Log.d("AppVM", "Caché reciente, omitiendo sincronización")
                 }
 
             } catch (e: Exception) {
@@ -552,7 +742,7 @@ class AppVM: ViewModel() {
                 _credencialState.update {
                     it.copy(
                         isLoading = false,
-                        error = "Error al obtener los datos: ${e.message}",
+                        error = "Error: ${e.message}",
                         usuario = null
                     )
                 }
@@ -561,51 +751,125 @@ class AppVM: ViewModel() {
     }
 
     // Función para VERIFICAR EXISTENCIA de credencial (solo para navegación)
+    // Optimizada para ser 100% cache-first y evitar errores de red al iniciar
     private fun checkCredencialExists() {
         viewModelScope.launch {
-            _verificationState.update { it.copy(isLoading = true, hasCredencial = false, error = null, isNetworkError = false) }
+            _verificationState.update {
+                it.copy(isLoading = true, hasCredencial = false, error = null, isNetworkError = false)
+            }
+
             try {
-                val email = auth.currentUser?.email
-
-                if (email == null) {
-                    throw Exception("Usuario no autenticado.")
+                // Verificar que el repository esté inicializado
+                if (!::credencialRepository.isInitialized) {
+                    Log.e("AppVM", "❌ Repository no inicializado - llamar initialize() primero")
+                    throw Exception("Repository no inicializado")
                 }
 
-                // Llamar a la API solo para verificar existencia
-                val response = api.getMe(email)
+                // 1. PRIMERO verificar caché local (instantáneo, < 20ms)
+                val hasLocalCredencial = credencialRepository.hasValidCredencial()
 
-                // Éxito: La credencial existe
-                _verificationState.update {
-                    it.copy(
-                        isLoading = false,
-                        hasCredencial = true,
-                        error = null,
-                        isNetworkError = false
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("AppVM", "Error al verificar credencial", e)
+                if (hasLocalCredencial) {
+                    // ✅ Credencial válida en caché → ACCESO INMEDIATO (sin esperar API)
+                    Log.d("AppVM", "✅ Credencial encontrada en caché - Acceso concedido")
 
-                // Detectar si es error de red o credencial no existe
-                val isNetworkIssue = e is java.net.UnknownHostException ||
-                        e is java.net.SocketTimeoutException ||
-                        e is java.io.IOException ||
-                        e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
-                        e.message?.contains("timeout", ignoreCase = true) == true ||
-                        e.message?.contains("Failed to connect", ignoreCase = true) == true
-
-                if (isNetworkIssue) {
-                    // Error de red: asumir que tiene credencial (beneficio de la duda)
                     _verificationState.update {
                         it.copy(
                             isLoading = false,
-                            hasCredencial = true, // Permitir acceso offline
-                            error = "Sin conexión. Modo offline.",
+                            hasCredencial = true,
+                            error = null,
+                            isNetworkError = false
+                        )
+                    }
+
+                    // Sincronizar en background SOLO si hay conexión (sin bloquear navegación)
+                    if (_isNetworkAvailable.value) {
+                        viewModelScope.launch {
+                            try {
+                                val email = auth.currentUser?.email ?: return@launch
+                                val usuario = api.getMe(email)
+                                credencialRepository.saveCredencial(usuario)
+                                Log.d("AppVM", "✅ Credencial sincronizada en background")
+                            } catch (e: Exception) {
+                                Log.w("AppVM", "⚠️ Sincronización en background falló (continuará offline)", e)
+                                // No hacer nada - el usuario ya tiene acceso
+                            }
+                        }
+                    } else {
+                        Log.d("AppVM", "📵 Sin conexión - Omitiendo sincronización background")
+                    }
+
+                } else {
+                    // ⚠️ No hay caché válido → REQUERIDO verificar con servidor
+                    Log.d("AppVM", "⚠️ Sin caché válido - Verificando conexión...")
+
+                    // DOBLE VERIFICACIÓN: StateFlow + Verificación directa del sistema
+                    val isNetworkAvailableFlow = _isNetworkAvailable.value
+                    val isNetworkAvailableDirect = if (::applicationContext.isInitialized) {
+                        NetworkUtils.isNetworkAvailable(applicationContext)
+                    } else {
+                        false
+                    }
+
+                    Log.d("AppVM", "   Flow dice: $isNetworkAvailableFlow")
+                    Log.d("AppVM", "   Sistema dice: $isNetworkAvailableDirect")
+
+                    // Si CUALQUIERA de las dos dice que no hay red, lanzar excepción
+                    if (!isNetworkAvailableFlow && !isNetworkAvailableDirect) {
+                        Log.e("AppVM", "🔴 Sin conexión detectada - Lanzando excepción de red")
+                        throw java.net.UnknownHostException("Sin conexión a Internet")
+                    }
+
+                    Log.d("AppVM", "🌐 Conexión disponible - Consultando servidor...")
+                    val email = auth.currentUser?.email
+                        ?: throw Exception("Usuario no autenticado")
+
+                    val response = api.getMe(email)
+
+                    // Guardar en caché para futuros accesos offline
+                    credencialRepository.saveCredencial(response)
+                    Log.d("AppVM", "✅ Credencial obtenida del servidor y guardada en caché")
+
+                    _verificationState.update {
+                        it.copy(
+                            isLoading = false,
+                            hasCredencial = true,
+                            error = null,
+                            isNetworkError = false
+                        )
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e("AppVM", "❌ Error al verificar credencial", e)
+                Log.e("AppVM", "   Tipo: ${e.javaClass.simpleName}")
+                Log.e("AppVM", "   Mensaje: ${e.message}")
+
+                // Detectar si es error de red
+                val isNetworkIssue = e is java.net.UnknownHostException ||
+                        e is java.net.SocketTimeoutException ||
+                        e is java.io.IOException ||
+                        e is javax.net.ssl.SSLException ||
+                        e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
+                        e.message?.contains("timeout", ignoreCase = true) == true ||
+                        e.message?.contains("Failed to connect", ignoreCase = true) == true ||
+                        e.message?.contains("Sin conexión", ignoreCase = true) == true
+
+                if (isNetworkIssue) {
+                    // 🔴 Error de red + Sin caché válido = Mostrar pantalla de error
+                    Log.e("AppVM", "🔴 Error de red confirmado - Mostrando NetworkErrorScreen")
+
+                    _verificationState.update {
+                        it.copy(
+                            isLoading = false,
+                            hasCredencial = false,
+                            error = "Sin conexión. Necesitas Internet para acceder por primera vez.",
                             isNetworkError = true
                         )
                     }
                 } else {
-                    // Error de API (404, etc.): no tiene credencial
+                    // ❌ Error de API (404, 401, etc.) = Credencial no existe en servidor
+                    Log.e("AppVM", "❌ Error de API - Credencial no encontrada")
+
                     _verificationState.update {
                         it.copy(
                             isLoading = false,
@@ -617,6 +881,7 @@ class AppVM: ViewModel() {
                 }
             } finally {
                 _credencialChecked.value = true
+                Log.d("AppVM", "✅ Verificación completada - credencialChecked = true")
             }
         }
     }

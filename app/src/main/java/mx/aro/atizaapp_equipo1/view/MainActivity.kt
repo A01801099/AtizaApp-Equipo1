@@ -21,6 +21,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializar el ViewModel con el contexto de la aplicación
+        viewModel.initialize(applicationContext)
+
         setContent {
             AtizaAppEquipo1Theme {
                 val view = LocalView.current

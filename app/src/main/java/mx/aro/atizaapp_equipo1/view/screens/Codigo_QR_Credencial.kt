@@ -1,24 +1,28 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
 import android.graphics.Bitmap
-import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardMembership
-import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,8 +47,14 @@ import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 
 /**
- * Muestra el QR usando el id del usuario obtenido desde el backend (getMe).
- * Si el usuario no está cargado llama a appVM.getMe() una vez.
+ * Pantalla de Código QR de la Credencial
+ * Modificada para usar caché local con sincronización en background
+ *
+ * OPTIMIZACIONES:
+ * - Carga instantánea desde caché (< 20ms)
+ * - Genera QR inmediatamente con datos locales
+ * - Sincroniza en background si es necesario
+ * - Muestra banner de estado (online/offline/sincronizando)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,27 +64,17 @@ fun CodigoQRCredencialScreen(
 ) {
     // Estado de la credencial desde el ViewModel
     val credState by appVM.credencialState.collectAsState()
+    val idFormateado by appVM.idFormateado.collectAsState()
 
-    // Si no tenemos usuario, pedimos los datos una vez
+    // Cargar credencial (primero intenta caché, luego sincroniza si es necesario)
     LaunchedEffect(Unit) {
-        if (credState.usuario == null) {
-            try {
-                appVM.getMe()
-            } catch (e: Exception) {
-                Toast.makeText(navController.context, "Error al obtener la credencial", Toast.LENGTH_SHORT).show()
-            }
-        }
+        appVM.getMe()
     }
 
     // Obtener idUsuario si existe
     val idUsuario: Int? = credState.usuario?.id
 
-    // 🔢 Formatear el ID con ceros y guiones
-    val idFormateado = remember(idUsuario) {
-        idUsuario?.let { formatearIdUsuario(it) }
-    }
-
-    // Generar QR con el valor formateado
+    // Generar QR con el ID formateado (usa el del ViewModel que ya está formateado)
     val qrBitmap: Bitmap? = remember(idFormateado) {
         idFormateado?.let { generarCodigoQR(it) }
     }
@@ -99,50 +100,116 @@ fun CodigoQRCredencialScreen(
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.padding(innerPadding)
         ) {
-            // Si aún no hay usuario, mostrar loader
-            if (idUsuario == null || credState.usuario == null) {
-                CircularProgressIndicator()
-                Text(
-                    text = "Cargando credencial...",
-                    modifier = Modifier.padding(top = 12.dp),
-                    textAlign = TextAlign.Center
-                )
-                return@Column
+            // Banner de estado de sincronización (igual que en Mi_credencial.kt)
+            credState.error?.let { errorMsg ->
+                if (errorMsg.contains("offline", ignoreCase = true) ||
+                    errorMsg.contains("Sincronizando", ignoreCase = true)) {
+
+                    val isOffline = errorMsg.contains("offline", ignoreCase = true)
+                    val isSyncing = errorMsg.contains("Sincronizando", ignoreCase = true)
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                when {
+                                    isOffline -> Color(0xFFFF9800) // Naranja para offline
+                                    isSyncing -> Color(0xFF2196F3) // Azul para sincronizando
+                                    else -> Color(0xFFFFC107) // Amarillo por defecto
+                                }
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (isOffline) Icons.Default.CloudOff else Icons.Default.Sync,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = errorMsg,
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
             }
 
-            val usuario = credState.usuario!!
+            // Contenido principal
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                when {
+                    // Cargando (solo si no hay datos aún)
+                    credState.isLoading && credState.usuario == null -> {
+                        CircularProgressIndicator()
+                        Text(
+                            text = "Cargando credencial...",
+                            modifier = Modifier.padding(top = 12.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
 
-            // Mostrar el código QR generado
-            qrBitmap?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = "Código QR del usuario",
-                    modifier = Modifier.size(300.dp)
-                )
+                    // Datos cargados (desde caché o servidor)
+                    credState.usuario != null && idFormateado != null -> {
+                        val usuario = credState.usuario!!
+
+                        // Mostrar el código QR generado
+                        qrBitmap?.let {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = "Código QR del usuario",
+                                modifier = Modifier.size(300.dp)
+                            )
+                        } ?: run {
+                            // Si por alguna razón no se pudo generar el QR
+                            Text(
+                                text = "Error al generar código QR",
+                                color = Color.Red,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Text(
+                            text = "Credencial Digital",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Error crítico (sin datos disponibles)
+                    credState.error != null && credState.usuario == null -> {
+
+                        Text(
+                            text = "No se pudo cargar la credencial",
+                            textAlign = TextAlign.Center,
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
             }
-
-            Spacer(modifier = Modifier.size(24.dp))
-
-            // Mostrar el texto del número formateado debajo
-            Text(
-                text = "Número de Tarjeta: $idFormateado",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
-
-            Text(text = "Nombre: ${usuario.nombre}", fontSize = 16.sp,fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center)
-            Text(text = "Correo: ${usuario.correo}", fontSize = 16.sp,fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center)
-
         }
     }
 }
