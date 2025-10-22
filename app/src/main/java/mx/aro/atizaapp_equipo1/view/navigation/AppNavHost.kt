@@ -169,16 +169,16 @@ fun AppNavHost(appVM: AppVM) {
 
                 // Mostrar mensaje si está en modo offline
                 if (verification.isNetworkError) {
-                    androidx.compose.foundation.layout.Column {
+                    Column {
                         // Banner de advertencia
-                        androidx.compose.foundation.layout.Box(
+                        Box(
                             modifier = androidx.compose.ui.Modifier
                                 .fillMaxWidth()
-                                .background(androidx.compose.ui.graphics.Color(0xFFFF9800))
+                                .background(androidx.compose.ui.graphics.Color(0xFFC6C6C6))
                                 .padding(8.dp)
                         ) {
-                            androidx.compose.material3.Text(
-                                text = "⚠️ ${verification.error ?: "Sin conexión"}",
+                            Text(
+                                text = "No fue posible actualizar los comercios en este momento compruebe su conexión a internet",
                                 color = androidx.compose.ui.graphics.Color.White,
                                 modifier = androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.Center)
                             )
