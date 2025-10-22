@@ -85,7 +85,8 @@ data class Oferta(
     val precio: String,
     val fechaInicio: String,
     val fechaFin: String?,
-    val estadoId: Int
+    val estadoId: Int,
+    val categoria: String
 )
 
 
