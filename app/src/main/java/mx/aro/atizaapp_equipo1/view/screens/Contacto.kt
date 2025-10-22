@@ -1,6 +1,9 @@
 package mx.aro.atizaapp_equipo1.view.screens
+import android.content.Intent
+import android.net.Uri
 import mx.aro.atizaapp_equipo1.R
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +23,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -42,6 +48,8 @@ fun ContactoScreen(navController: NavHostController) {
     }
 
     val scrollState = rememberScrollState()
+    val context = LocalContext.current // Contexto para abrir la app de teléfono
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -79,7 +87,6 @@ fun ContactoScreen(navController: NavHostController) {
             Text("Si tienes dudas o comentarios, contáctanos en:", fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
-
             Spacer(modifier = Modifier.height(24.dp))
 
             // 🗺️ Mapa interactivo con marcador
@@ -99,11 +106,27 @@ fun ContactoScreen(navController: NavHostController) {
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Teléfono: 55-16-68-17-48", fontSize = 16.sp)
+
+            // 📞 Teléfono clicable
+            Text(
+                text = "Teléfono: 55-16-68-17-48",
+                fontSize = 16.sp,
+                color = Color.Blue,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable {
+                    val intent = Intent(Intent.ACTION_DIAL)
+                    intent.data = Uri.parse("tel:+525516681748")
+                    context.startActivity(intent)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 "Dirección: Avenida del parque SN, " +
-                        " Jardines de Atizapán, Atizapán de Zaragoza",
+                        "Jardines de Atizapán, Atizapán de Zaragoza",
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp
             )
