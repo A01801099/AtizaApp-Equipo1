@@ -29,9 +29,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,6 +43,9 @@ import androidx.navigation.NavHostController
 import mx.aro.atizaapp_equipo1.R
 import mx.aro.atizaapp_equipo1.model.Usuario
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
@@ -151,6 +156,19 @@ fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
 
 @Composable
 private fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
+    // ✅ Calcular la fecha de vencimiento sumando 29 años al nacimiento
+    val fechaVencimiento = remember(usuario.nacimiento) {
+        try {
+            val formatoEntrada = DateTimeFormatter.ofPattern("yyyy-MM-dd") // ajusta si tu backend usa otro
+            val formatoSalida = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            val nacimiento = LocalDate.parse(usuario.nacimiento, formatoEntrada)
+            val vencimiento = nacimiento.plusYears(29)
+            vencimiento.format(formatoSalida)
+        } catch (e: Exception) {
+            "Fecha inválida"
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -167,20 +185,19 @@ private fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Imagen de la credencial
             Image(
                 painter = painterResource(id = R.drawable.atras_tarjeta2),
                 contentDescription = "Imagen de la credencial",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.FillWidth
             )
 
-            // Texto del ID formateado centrado sobre la imagen
             idFormateado?.let { id ->
                 Text(
                     text = id,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = androidx.compose.ui.graphics.Color.Black,
+                    color = Color.Black,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.offset(y = 6.dp)
                 )
@@ -189,17 +206,14 @@ private fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Datos del usuario
-        Text(text = "CURP: ${usuario.curp}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center)
-        Text(text = "Nombre: ${usuario.nombre}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center)
-        Text(text = "Correo: ${usuario.correo}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center)
-        Text(text = "Estado: ${usuario.estado}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center)
-        Text(text = "Nacimiento: ${usuario.nacimiento}", fontSize = 18.sp,fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center)
+        // 🧾 Datos del usuario
+        Text(text = "CURP: ${usuario.curp}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text(text = "Nombre: ${usuario.nombre}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text(text = "Correo: ${usuario.correo}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text(text = "Estado: ${usuario.estado}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text(text = "Nacimiento: ${usuario.nacimiento}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(text = "Vencimiento de la tarjeta: $fechaVencimiento", fontSize = 18.sp, fontWeight = FontWeight.Medium)
 
         Spacer(modifier = Modifier.height(32.dp))
     }
