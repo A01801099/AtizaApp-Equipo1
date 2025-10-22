@@ -34,6 +34,7 @@ import androidx.navigation.NavHostController
 import mx.aro.atizaapp_equipo1.model.Oferta
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -48,12 +49,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.room.util.TableInfo
 
-
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun OfertasScreen(
     navController: NavHostController,
-    appVM: AppVM
+    appVM: AppVM = viewModel()
 ) {
     val state by appVM.ofertasState.collectAsState()
     var searchText by remember { mutableStateOf("") }
@@ -71,9 +72,10 @@ fun OfertasScreen(
         }
     ) { paddingValues ->
 
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
 
             // Barra de búsqueda
@@ -83,7 +85,8 @@ fun OfertasScreen(
                 label = { Text("Buscar oferta") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(8.dp),
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
             )
 
             if (state.isLoadingInitial) {
@@ -94,52 +97,52 @@ fun OfertasScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val filtered = state.ofertas.filter { it.titulo.contains(searchText, ignoreCase = true) }
+                val filtered = state.ofertas.filter { it.titulo.contains(searchText, ignoreCase = true) }
 
-                    items(filtered) { oferta ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { /* Navegar a detalle de oferta si quieres */ },
-                            elevation = CardDefaults.cardElevation(4.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                Text(oferta.titulo, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text(oferta.descripcion, fontSize = 14.sp)
-                                Text("Precio: ${oferta.precio}", fontSize = 12.sp, color = Color.Gray)
+                if (filtered.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No se encontraron ofertas", color = Color.Gray)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(filtered) { index, oferta ->
+                            OfertaItem(oferta) {
+                                // Aquí podrías navegar a detalle de oferta
+                                // navController.navigate("detalle_oferta/${oferta.id}")
+                            }
+
+                            // Cargar siguiente página automáticamente si estamos al final
+                            if (index == filtered.lastIndex && !state.endReached && !state.isLoadingMore) {
+                                LaunchedEffect(Unit) {
+                                    appVM.loadNextPageOfOfertas()
+                                }
                             }
                         }
-                    }
 
-                    // Spinner para paginación
-                    if (state.isLoadingMore) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-
-                    // Cargar siguiente página automáticamente
-                    if (!state.endReached && !state.isLoadingMore) {
-                        item {
-                            LaunchedEffect(Unit) {
-                                appVM.loadNextPageOfOfertas()
+                        // Spinner de paginación
+                        if (state.isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
                     }
                 }
 
+                // Mostrar error si existe
                 state.error?.let { errorMsg ->
                     Text(
                         errorMsg,
@@ -148,6 +151,24 @@ fun OfertasScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun OfertaItem(oferta: Oferta, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(oferta.titulo, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(oferta.descripcion, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("Precio: ${oferta.precio}", fontSize = 12.sp, color = Color.Gray)
         }
     }
 }

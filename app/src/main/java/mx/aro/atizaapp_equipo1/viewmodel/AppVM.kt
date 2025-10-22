@@ -34,7 +34,9 @@ import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
 import mx.aro.atizaapp_equipo1.model.Usuario
 import androidx.compose.foundation.lazy.items
 import androidx.room.util.copy
+import mx.aro.atizaapp_equipo1.model.NegociosRepository
 import mx.aro.atizaapp_equipo1.model.Oferta
+import mx.aro.atizaapp_equipo1.model.OfertasRepository
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 import mx.aro.atizaapp_equipo1.utils.NetworkUtils
@@ -127,7 +129,8 @@ class AppVM: ViewModel() {
     fun initialize(context: Context) {
         applicationContext = context.applicationContext
         credencialRepository = CredencialRepository(applicationContext)
-
+        negociosRepository = NegociosRepository(applicationContext)
+        ofertasRepository = OfertasRepository(applicationContext)
         // PRIMERO: Verificar estado inicial de red de forma síncrona
         val initialNetworkState = NetworkUtils.isNetworkAvailable(applicationContext)
         _isNetworkAvailable.value = initialNetworkState
@@ -203,7 +206,9 @@ class AppVM: ViewModel() {
     private val _isNetworkAvailable = MutableStateFlow(true)
     val isNetworkAvailable = _isNetworkAvailable.asStateFlow()
 
+    private lateinit var negociosRepository: NegociosRepository
 
+    private lateinit var ofertasRepository: OfertasRepository
     init {
         // Establecer estado inicial del usuario SIN recargar de Firebase
         // El reload se hará después de initialize() cuando sepamos el estado de red
@@ -275,6 +280,7 @@ class AppVM: ViewModel() {
                 }
         }
     }
+
     fun loadNextPageOfOfertas() {
         viewModelScope.launch {
             val currentState = _ofertasState.value
@@ -288,8 +294,35 @@ class AppVM: ViewModel() {
                 _ofertasState.update { it.copy(isLoadingMore = true, error = null) }
             }
 
+            val online = _isNetworkAvailable.value
+
+            // 🌐 Cargar desde cache si no hay internet
+            if (!online && isInitialLoad && ::ofertasRepository.isInitialized) {
+                val cached = ofertasRepository.getOfertas()
+                if (!cached.isNullOrEmpty()) {
+                    _ofertasState.update {
+                        it.copy(
+                            isLoadingInitial = false,
+                            isLoadingMore = false,
+                            ofertas = cached,
+                            nextCursor = null,
+                            endReached = true,
+                            error = "Modo offline: mostrando ofertas en caché"
+                        )
+                    }
+                    return@launch
+                }
+            }
+
+            // 🌐 Cargar desde API
             try {
                 val response = api.getOfertas(cursor = currentState.nextCursor)
+
+                // Guardar cache solo si es la primera página
+                if (isInitialLoad && ::ofertasRepository.isInitialized) {
+                    ofertasRepository.saveOfertas(response.items)
+                }
+
                 _ofertasState.update {
                     it.copy(
                         isLoadingInitial = false,
@@ -310,6 +343,12 @@ class AppVM: ViewModel() {
             }
         }
     }
+
+    fun clearOfertas() {
+        _ofertasState.value = OfertasState()
+        if (::ofertasRepository.isInitialized) ofertasRepository.clearCache()
+    }
+
     fun hacerLoginEmailPassword(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
             _authState.value = AuthState(emailError = if(email.isBlank()) "El correo no puede estar vacío" else null, passwordError = if(pass.isBlank()) "La contraseña no puede estar vacía" else null)
@@ -982,12 +1021,10 @@ class AppVM: ViewModel() {
     fun loadNextPageOfNegocios() {
         viewModelScope.launch {
             val currentState = _negociosState.value
-            // Evita hacer llamadas si ya se está cargando o si se llegó al final
-            if (currentState.isLoadingInitial || currentState.isLoadingMore || currentState.endReached) {
-                return@launch
-            }
 
-            // Determina si es la carga inicial para mostrar el indicador de carga apropiado
+            // Evita hacer llamadas si ya se está cargando o si se llegó al final
+            if (currentState.isLoadingInitial || currentState.isLoadingMore || currentState.endReached) return@launch
+
             val isInitialLoad = currentState.negocios.isEmpty()
             if (isInitialLoad) {
                 _negociosState.update { it.copy(isLoadingInitial = true, error = null) }
@@ -995,26 +1032,44 @@ class AppVM: ViewModel() {
                 _negociosState.update { it.copy(isLoadingMore = true, error = null) }
             }
 
+            // Revisar conectividad
+            val online = _isNetworkAvailable.value
+
+            if (!online && isInitialLoad && negociosRepository.hasCache()) {
+                // 📥 Cargar desde caché
+                val cached = negociosRepository.getNegocios()
+                _negociosState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        isLoadingMore = false,
+                        negocios = cached,
+                        nextCursor = null, // no se puede paginar offline
+                        endReached = true,
+                        error = "Modo offline: mostrando datos en caché"
+                    )
+                }
+                return@launch
+            }
+
+            // 🌐 Con internet → cargar API
             try {
-                // NOTA: Asegúrate de que tu ApiService.getNegocios() acepte un cursor (String?)
-                // y devuelva un objeto NegociosApiResponse(val negocios: List<Negocio>, val nextCursor: String?).
                 val response = api.getNegocios(cursor = currentState.nextCursor)
-                println("Negocios recibidos de la API: ${response.items}")
+
+                // Guardar todos los negocios en caché si es la primera página
+                if (currentState.nextCursor == null) {
+                    negociosRepository.saveNegocios(response.items)
+                }
 
                 _negociosState.update {
                     it.copy(
                         isLoadingInitial = false,
                         isLoadingMore = false,
-                        // Añade los nuevos negocios a la lista existente
                         negocios = it.negocios + response.items,
-                        // Actualiza el cursor para la siguiente llamada
                         nextCursor = response.nextCursor,
-                        // Si el nuevo cursor es nulo, hemos llegado al final
                         endReached = response.nextCursor == null
                     )
                 }
             } catch (e: Exception) {
-                Log.e("AppVM", "Error al cargar negocios", e)
                 _negociosState.update {
                     it.copy(
                         isLoadingInitial = false,
@@ -1025,6 +1080,7 @@ class AppVM: ViewModel() {
             }
         }
     }
+
 
     // ========== FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA ==========
 
