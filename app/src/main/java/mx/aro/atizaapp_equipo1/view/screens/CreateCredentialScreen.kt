@@ -37,6 +37,29 @@ fun CreateCredentialScreen(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Estados para controlar el flujo de disclaimers
+    var aceptoAvisoPrivacidad by remember { mutableStateOf(false) }
+    var aceptoDeclaratoriaEdad by remember { mutableStateOf(false) }
+
+    // Mostrar disclaimers en secuencia
+    when {
+        !aceptoAvisoPrivacidad -> {
+            AvisoPrivacidadScreen(
+                onAceptar = { aceptoAvisoPrivacidad = true },
+                modifier = modifier
+            )
+            return
+        }
+        !aceptoDeclaratoriaEdad -> {
+            DeclaratoriaEdadScreen(
+                onAceptar = { aceptoDeclaratoriaEdad = true },
+                modifier = modifier
+            )
+            return
+        }
+    }
+
+    // Una vez aceptados ambos disclaimers, mostrar el formulario
     val purple = Color(0xFF5B2DCC)
     val white = Color(0xFFFFFFFF)
 
@@ -50,10 +73,35 @@ fun CreateCredentialScreen(
     var showEntidadMenu by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var edadError by remember { mutableStateOf<String?>(null) }
 
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
+
+    // Función para calcular la edad
+    fun calcularEdad(fechaNac: String): Int? {
+        return try {
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val birthDate = dateFormat.parse(fechaNac) ?: return null
+            val birthCalendar = Calendar.getInstance()
+            birthCalendar.time = birthDate
+            val today = Calendar.getInstance()
+
+            var edad = today.get(Calendar.YEAR) - birthCalendar.get(Calendar.YEAR)
+
+            // Ajustar si aún no ha cumplido años este año
+            if (today.get(Calendar.MONTH) < birthCalendar.get(Calendar.MONTH) ||
+                (today.get(Calendar.MONTH) == birthCalendar.get(Calendar.MONTH) &&
+                        today.get(Calendar.DAY_OF_MONTH) < birthCalendar.get(Calendar.DAY_OF_MONTH))) {
+                edad--
+            }
+
+            edad
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     // Observar el estado de creación de credencial
     val createState by appVM.createCredentialState.collectAsStateWithLifecycle()
@@ -112,6 +160,14 @@ fun CreateCredentialScreen(
             selectedDate.set(year, month, dayOfMonth)
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             fechaNacimiento = dateFormat.format(selectedDate.time)
+
+            // Validar edad al seleccionar la fecha
+            val edad = calcularEdad(fechaNacimiento)
+            edadError = if (edad != null && (edad < 12 || edad > 29)) {
+                "Tu edad debe estar entre 12 y 29 años"
+            } else {
+                null
+            }
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
@@ -265,13 +321,29 @@ fun CreateCredentialScreen(
                         .fillMaxWidth()
                         .clickable { datePickerDialog.show() },
                     placeholder = { Text("YYYY-MM-DD") },
-                    supportingText = { Text("Formato: 2003-05-06") },
+                    supportingText = {
+                        if (edadError != null) {
+                            Text(
+                                text = edadError!!,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        } else {
+                            Text("Formato: 2003-05-06")
+                        }
+                    },
+                    isError = edadError != null,
                     enabled = false,
                     colors = OutlinedTextFieldDefaults.colors(
                         disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                        disabledBorderColor = if (edadError != null)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.outline,
                         disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledLabelColor = if (edadError != null)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant,
                         disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
@@ -300,6 +372,9 @@ fun CreateCredentialScreen(
                             }
                             fechaNacimiento.isBlank() -> {
                                 Toast.makeText(context, "Selecciona una fecha de nacimiento", Toast.LENGTH_SHORT).show()
+                            }
+                            edadError != null -> {
+                                Toast.makeText(context, "Tu edad debe estar entre 12 y 29 años", Toast.LENGTH_LONG).show()
                             }
                             else -> {
                                 // Construir el nombre completo

@@ -165,29 +165,7 @@ fun AppNavHost(appVM: AppVM) {
             }
             // MAIN
             composable("explorar") {
-                val verification = appVM.verificationState.collectAsState().value
-
-                // Mostrar mensaje si está en modo offline
-                if (verification.isNetworkError) {
-                    Column {
-                        // Banner de advertencia
-                        Box(
-                            modifier = androidx.compose.ui.Modifier
-                                .fillMaxWidth()
-                                .background(androidx.compose.ui.graphics.Color(0xFFC6C6C6))
-                                .padding(8.dp)
-                        ) {
-                            Text(
-                                text = "No fue posible actualizar los comercios en este momento compruebe su conexión a internet",
-                                color = androidx.compose.ui.graphics.Color.White,
-                                modifier = androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.Center)
-                            )
-                        }
-                        ExplorarComerciosScreen(appVM = appVM, navController = navController)
-                    }
-                } else {
-                    ExplorarComerciosScreen(appVM = appVM, navController = navController)
-                }
+                ExplorarComerciosScreen(appVM = appVM, navController = navController)
             }
             composable("mi_credencial") {
                 MiCredencialScreen(navController = navController, appVM = appVM)
@@ -232,8 +210,8 @@ private fun OfflineBanner() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFF6F00)) // Naranja oscuro para mejor visibilidad
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .background(Color(0xFF607D8B)) // Naranja oscuro para mejor visibilidad
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -248,16 +226,16 @@ private fun OfflineBanner() {
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "🔌 Modo Sin Conexión",
+                    text = "Modo Sin Conexión",
                     color = Color.White,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Solo credencial disponible offline",
+                    text = "Mostrando los datos de la ultima sincronización",
                     color = Color.White.copy(alpha = 0.9f),
                     fontSize = 13.sp
                 )

@@ -95,12 +95,12 @@ fun LoginScreen(
                     "Inicio de sesión cancelado."
                 }
                 else -> {
-                    "Error en login con Google: ${e.localizedMessage}"
+                    "Error en login con Google "
                 }
             }
             Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "Error en el login: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error en el login verifique su conexión a internet o intentelo de nuevo mas tarde", Toast.LENGTH_LONG).show()
         }
     }
 

@@ -732,9 +732,7 @@ class AppVM: ViewModel() {
                         it.copy(
                             isLoading = false,
                             usuario = cached.usuario,
-                            error = if (credencialRepository.isCacheStale(hours = 1)) {
-                                "Sincronizando..."
-                            } else null
+                            error = null
                         )
                     }
 
