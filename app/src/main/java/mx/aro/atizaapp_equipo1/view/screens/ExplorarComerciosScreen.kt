@@ -181,6 +181,16 @@ fun ExplorarComerciosScreen(
                             }
                         }
                     }
+
+                    // 🚀 Trigger para cargar más cuando llegue al final
+                    if (!state.endReached && !state.isLoadingMore && filtered.isNotEmpty()) {
+                        item {
+                            // Item invisible que detecta cuando el usuario llega al final
+                            LaunchedEffect(Unit) {
+                                appVM.loadNextPageOfNegocios()
+                            }
+                        }
+                    }
                 }
 
                 // ⚠️ Mostrar error
