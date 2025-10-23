@@ -1062,7 +1062,8 @@ class AppVM: ViewModel() {
                     it.copy(
                         isLoadingInitial = false,
                         isLoadingMore = false,
-                        negocios = it.negocios + response.items,
+                        // Si es la primera página (nextCursor es null), reemplazar; si no, agregar
+                        negocios = if (currentState.nextCursor == null) response.items else it.negocios + response.items,
                         nextCursor = response.nextCursor,
                         endReached = response.nextCursor == null
                     )

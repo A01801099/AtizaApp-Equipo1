@@ -84,11 +84,8 @@ fun ExplorarComerciosScreen(
     val repo = remember { NegociosRepository(context) }
 
     LaunchedEffect(Unit) {
-        if (repo.hasCache() && appVM.negociosState.value.negocios.isEmpty()) {
-            val cached = repo.getNegocios()
-            appVM.setNegociosFromCache(cached)
-            appVM.loadNextPageOfNegocios()
-        } else {
+        // Solo cargar si la lista está vacía
+        if (appVM.negociosState.value.negocios.isEmpty()) {
             appVM.loadNextPageOfNegocios()
         }
     }
@@ -183,14 +180,6 @@ fun ExplorarComerciosScreen(
                                 CircularProgressIndicator()
                             }
                         }
-                    }
-                }
-
-                // 🚀 Cargar más y guardar en caché
-                LaunchedEffect(state.nextCursor, state.isLoadingMore) {
-                    if (!state.endReached && !state.isLoadingMore) {
-                        appVM.loadNextPageOfNegocios()
-                        repo.saveNegocios(appVM.negociosState.value.negocios)
                     }
                 }
 
