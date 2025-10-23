@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
@@ -41,11 +42,14 @@ fun CreateCredentialScreen(
     var aceptoAvisoPrivacidad by remember { mutableStateOf(false) }
     var aceptoDeclaratoriaEdad by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+
     // Mostrar disclaimers en secuencia
     when {
         !aceptoAvisoPrivacidad -> {
             AvisoPrivacidadScreen(
                 onAceptar = { aceptoAvisoPrivacidad = true },
+                onRegresar = { appVM.hacerLogout(context) },
                 modifier = modifier
             )
             return
@@ -53,6 +57,7 @@ fun CreateCredentialScreen(
         !aceptoDeclaratoriaEdad -> {
             DeclaratoriaEdadScreen(
                 onAceptar = { aceptoDeclaratoriaEdad = true },
+                onRegresar = { appVM.hacerLogout(context) },
                 modifier = modifier
             )
             return
@@ -76,7 +81,6 @@ fun CreateCredentialScreen(
     var edadError by remember { mutableStateOf<String?>(null) }
 
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
     // Función para calcular la edad
@@ -234,7 +238,7 @@ fun CreateCredentialScreen(
                     ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("GABRIEL") }
+                    placeholder = { Text("Nombre") }
                 )
 
                 // Campo Apellido Paterno
@@ -249,7 +253,7 @@ fun CreateCredentialScreen(
                     ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("ESPERILLA") }
+                    placeholder = { Text("Apellido Paterno") }
                 )
 
                 // Campo Apellido Materno
@@ -264,7 +268,7 @@ fun CreateCredentialScreen(
                     ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("LEON") }
+                    placeholder = { Text("Apellido Materno") }
                 )
 
                 // Selector de Entidad de Registro
@@ -400,16 +404,33 @@ fun CreateCredentialScreen(
                     Text("Crear Credencial")
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Línea de separación
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = purple.copy(alpha = 0.3f)
+                )
 
-                ElevatedButton(onClick = {
-                    appVM.hacerLogout(context)
-                }) {
-                    Text("Logout")
+                // Botón de Cancelar
+                ElevatedButton(
+                    onClick = { appVM.hacerLogout(context) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.elevatedButtonColors(
+                        containerColor = white,
+                        contentColor = purple
+                    ),
+                    elevation = ButtonDefaults.elevatedButtonElevation(
+                        defaultElevation = 2.dp
+                    )
+                ) {
+                    Text("Cancelar")
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
-
         // Overlay de Loading - Cubre todo el formulario mientras se valida
         if (createState.isLoading) {
             Box(
