@@ -84,9 +84,9 @@ fun ExplorarComerciosScreen(
     val repo = remember { NegociosRepository(context) }
 
     LaunchedEffect(Unit) {
-        // Solo cargar si la lista está vacía
+        // Cargar TODOS los negocios al inicio
         if (appVM.negociosState.value.negocios.isEmpty()) {
-            appVM.loadNextPageOfNegocios()
+            appVM.loadAllNegocios()
         }
     }
 
@@ -168,29 +168,6 @@ fun ExplorarComerciosScreen(
                         NegocioItem(negocio, navController)
                     }
 
-                    // 🔁 Indicador de carga adicional
-                    if (state.isLoadingMore) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-
-                    // 🚀 Trigger para cargar más cuando llegue al final
-                    if (!state.endReached && !state.isLoadingMore && filtered.isNotEmpty()) {
-                        item {
-                            // Item invisible que detecta cuando el usuario llega al final
-                            LaunchedEffect(Unit) {
-                                appVM.loadNextPageOfNegocios()
-                            }
-                        }
-                    }
                 }
 
                 // ⚠️ Mostrar error

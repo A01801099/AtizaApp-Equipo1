@@ -281,6 +281,80 @@ class AppVM: ViewModel() {
         }
     }
 
+    // Función para cargar TODAS las ofertas de una vez (sin paginación)
+    fun loadAllOfertas() {
+        viewModelScope.launch {
+            val currentState = _ofertasState.value
+
+            // Evitar cargas duplicadas
+            if (currentState.isLoadingInitial || currentState.ofertas.isNotEmpty()) return@launch
+
+            _ofertasState.update { it.copy(isLoadingInitial = true, error = null) }
+
+            // Revisar conectividad
+            val online = _isNetworkAvailable.value
+
+            if (!online && ::ofertasRepository.isInitialized) {
+                // 📥 Sin internet: cargar desde caché
+                val cached = ofertasRepository.getOfertas()
+                if (!cached.isNullOrEmpty()) {
+                    _ofertasState.update {
+                        it.copy(
+                            isLoadingInitial = false,
+                            ofertas = cached,
+                            nextCursor = null,
+                            endReached = true,
+                            error = "Modo offline: mostrando ofertas en caché"
+                        )
+                    }
+                    return@launch
+                }
+            }
+
+            // 🌐 Con internet: cargar TODAS las páginas
+            try {
+                val allOfertas = mutableListOf<Oferta>()
+                var nextCursor: String? = null
+                var endReached = false
+
+                // Cargar todas las páginas en un loop
+                while (!endReached) {
+                    val response = api.getOfertas(cursor = nextCursor)
+                    allOfertas.addAll(response.items)
+
+                    nextCursor = response.nextCursor
+                    endReached = nextCursor == null
+
+                    Log.d("AppVM", "📥 Cargando ofertas: ${allOfertas.size} acumuladas...")
+                }
+
+                // Guardar en caché TODAS las ofertas
+                if (::ofertasRepository.isInitialized) {
+                    ofertasRepository.saveOfertas(allOfertas)
+                }
+                Log.d("AppVM", "✅ Carga completa: ${allOfertas.size} ofertas")
+
+                _ofertasState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        ofertas = allOfertas,
+                        nextCursor = null,
+                        endReached = true,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("AppVM", "❌ Error al cargar ofertas: ${e.message}")
+                _ofertasState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        error = "Error al cargar ofertas: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
     fun loadNextPageOfOfertas() {
         viewModelScope.launch {
             val currentState = _ofertasState.value
@@ -1016,6 +1090,76 @@ class AppVM: ViewModel() {
     fun clearOfertasNegocio() {
         _ofertasNegocioState.value = OfertasNegocioState()
     }
+    // Función para cargar TODOS los negocios de una vez (sin paginación)
+    fun loadAllNegocios() {
+        viewModelScope.launch {
+            val currentState = _negociosState.value
+
+            // Evitar cargas duplicadas
+            if (currentState.isLoadingInitial || currentState.negocios.isNotEmpty()) return@launch
+
+            _negociosState.update { it.copy(isLoadingInitial = true, error = null) }
+
+            // Revisar conectividad
+            val online = _isNetworkAvailable.value
+
+            if (!online && negociosRepository.hasCache()) {
+                // 📥 Sin internet: cargar desde caché
+                val cached = negociosRepository.getNegocios()
+                _negociosState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        negocios = cached,
+                        nextCursor = null,
+                        endReached = true,
+                        error = "Modo offline: mostrando datos en caché"
+                    )
+                }
+                return@launch
+            }
+
+            // 🌐 Con internet: cargar TODAS las páginas
+            try {
+                val allNegocios = mutableListOf<Negocio>()
+                var nextCursor: String? = null
+                var endReached = false
+
+                // Cargar todas las páginas en un loop
+                while (!endReached) {
+                    val response = api.getNegocios(cursor = nextCursor)
+                    allNegocios.addAll(response.items)
+
+                    nextCursor = response.nextCursor
+                    endReached = nextCursor == null
+
+                    Log.d("AppVM", "📥 Cargando negocios: ${allNegocios.size} acumulados...")
+                }
+
+                // Guardar en caché TODOS los negocios
+                negociosRepository.saveNegocios(allNegocios)
+                Log.d("AppVM", "✅ Carga completa: ${allNegocios.size} negocios")
+
+                _negociosState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        negocios = allNegocios,
+                        nextCursor = null,
+                        endReached = true,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("AppVM", "❌ Error al cargar negocios: ${e.message}")
+                _negociosState.update {
+                    it.copy(
+                        isLoadingInitial = false,
+                        error = "Error al cargar los negocios: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
     fun loadNextPageOfNegocios() {
         viewModelScope.launch {
             val currentState = _negociosState.value

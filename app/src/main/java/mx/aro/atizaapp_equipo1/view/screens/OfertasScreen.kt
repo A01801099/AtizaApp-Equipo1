@@ -94,9 +94,9 @@ fun OfertasScreen(
         "Belleza", "Educación", "Moda", "Servicios"
     )
 
-    // Cargar la primera página automáticamente
+    // Cargar TODAS las ofertas al inicio
     LaunchedEffect(Unit) {
-        if (state.ofertas.isEmpty()) appVM.loadNextPageOfOfertas()
+        if (state.ofertas.isEmpty()) appVM.loadAllOfertas()
     }
 
     Scaffold(
@@ -182,31 +182,10 @@ fun OfertasScreen(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
-                        itemsIndexed(filtered) { index, oferta ->
+                        items(filtered) { oferta ->
                             OfertaItem(oferta) {
                                 // Navegar a detalle de oferta si se requiere
                                 // navController.navigate("detalle_oferta/${oferta.id}")
-                            }
-
-                            // Cargar siguiente página automáticamente
-                            if (index == filtered.lastIndex && !state.endReached && !state.isLoadingMore) {
-                                LaunchedEffect(Unit) {
-                                    appVM.loadNextPageOfOfertas()
-                                }
-                            }
-                        }
-
-                        // Spinner de paginación
-                        if (state.isLoadingMore) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
                             }
                         }
                     }
