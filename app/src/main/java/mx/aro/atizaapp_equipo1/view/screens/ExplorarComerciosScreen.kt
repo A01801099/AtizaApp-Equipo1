@@ -2,7 +2,6 @@ package mx.aro.atizaapp_equipo1.view.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,28 +11,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.CardMembership
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -48,22 +37,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil3.compose.AsyncImage
-import mx.aro.atizaapp_equipo1.R
-import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
-import mx.aro.atizaapp_equipo1.model.apiClientService.NegociosRepository
+import mx.aro.atizaapp_equipo1.model.repository.NegociosRepository
 import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
-import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
+import mx.aro.atizaapp_equipo1.view.components.NegocioItem
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 // --------- PANTALLA EXPLORAR COMERCIOS (NEGOCIOS REALES) ---------
@@ -77,7 +58,6 @@ fun ExplorarComerciosScreen(
     appVM: AppVM = viewModel(),
     context: Context = LocalContext.current
 ) {
-    val repo = remember { NegociosRepository(context) }
 
     LaunchedEffect(Unit) {
         // Cargar TODOS los negocios al inicio
@@ -172,87 +152,6 @@ fun ExplorarComerciosScreen(
                 }
             }
         }
-    }
-}
-
-// -------------------- ITEM DE CADA NEGOCIO --------------------
-@Composable
-fun NegocioItem(negocio: Negocio, navController: NavHostController) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { navController.navigate("explorar_comercio/${negocio.id}") },
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = convertGoogleDriveUrl(negocio.imagen),
-                contentDescription = negocio.nombre,
-                modifier = Modifier.size(80.dp),
-                placeholder = painterResource(R.drawable.ic_launcher_foreground),
-                error = painterResource(R.drawable.ic_launcher_foreground)
-            )
-            Column(modifier = Modifier.padding(start = 8.dp)) {
-                Text(negocio.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("Tipo: ${negocio.tipo}", fontSize = 14.sp)
-                Text("Ubicación: ${negocio.ubicacion}", fontSize = 12.sp)
-            }
-        }
-    }
-}
-
-// -------------------- BOTTOM NAVIGATION BAR --------------------
-@Composable
-fun BottomNavigationBar(navController: NavHostController) {
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-
-    NavigationBar {
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = "Explorar") },
-            label = { Text("Explorar") },
-            selected = currentRoute == "explorar",
-            onClick = { navController.navigate("explorar") }
-        )
-
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.AddShoppingCart, contentDescription = "Ofertas") },
-            label = { Text("Beneficios") },
-            selected = currentRoute == "beneficios",
-            onClick = { navController.navigate("beneficios") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.CardMembership, contentDescription = "Mi credencial") },
-            label = { Text("Mi credencial", textAlign = TextAlign.Center) },
-            selected = currentRoute == "mi_credencial",
-            onClick = { navController.navigate("mi_credencial") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Call, contentDescription = "Contacto") },
-            label = { Text("Contacto") },
-            selected = currentRoute == "contacto",
-            onClick = { navController.navigate("contacto") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes") },
-            label = { Text("Ajustes") },
-            selected = currentRoute == "ajustes",
-            onClick = { navController.navigate("ajustes") }
-        )
-    }
-}
-
-// -------------------- PREVIEW --------------------
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(showBackground = true)
-@Composable
-fun ExplorarComerciosPreview() {
-    val fakeNavController = rememberNavController()
-    val fakeViewModel = AppVM() // solo visual
-    AtizaAppEquipo1Theme {
-        ExplorarComerciosScreen(navController = fakeNavController, appVM = fakeViewModel)
     }
 }
 

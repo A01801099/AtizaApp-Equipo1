@@ -1,4 +1,4 @@
-package mx.aro.atizaapp_equipo1.model.apiClientService
+package mx.aro.atizaapp_equipo1.model.repository
 
 import android.content.Context
 import com.google.gson.Gson

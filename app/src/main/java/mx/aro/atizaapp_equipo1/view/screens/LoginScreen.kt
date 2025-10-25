@@ -31,18 +31,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.base.R
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
 import mx.aro.atizaapp_equipo1.model.apiClientService.TOKEN_WEB
+import mx.aro.atizaapp_equipo1.view.components.CurvedSheet
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 @Composable
@@ -132,11 +133,15 @@ fun LoginScreen(
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                 trailingIcon = {
                     val valid = remember(email) { email.contains("@") && email.contains(".") }
-                    if (valid) Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = Color(0xFF22C55E))
+                    if (valid) Icon(
+                        Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = Color(0xFF22C55E)
+                    )
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
-                    imeAction = androidx.compose.ui.text.input.ImeAction.Next
+                    imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = {
@@ -172,7 +177,7 @@ fun LoginScreen(
                 visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
-                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                    imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
@@ -248,7 +253,7 @@ fun LoginScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Image(
-                    painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_standard_color_18),
+                    painter = painterResource(id = R.drawable.googleg_standard_color_18),
                     contentDescription = "Google",
                     modifier = Modifier
                         .size(20.dp)
@@ -282,43 +287,3 @@ fun LoginScreen(
     }
 }
 
-/**
- * Tarjeta blanca con una “semicurva” por encima, centrada.
- * Implementación simple con dos Surfaces: uno circular (la curva) y el cuerpo rectangular.
- */
-@Composable
-fun CurvedSheet(
-    title: String,
-    sheetColor: Color,
-    curveHeight: Dp,
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Box(modifier = modifier) {
-        // Cuerpo de la tarjeta
-        Surface(
-            color = sheetColor,
-            shape = RoundedCornerShape(16.dp),
-            tonalElevation = 8.dp,
-            shadowElevation = 8.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier
-                    .padding(horizontal = 20.dp)
-                    .padding(top = curveHeight + 16.dp, bottom = 20.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black
-                )
-                content()
-            }
-        }
-
-    }
-}

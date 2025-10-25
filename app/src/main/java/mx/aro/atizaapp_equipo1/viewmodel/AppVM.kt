@@ -32,14 +32,14 @@ import mx.aro.atizaapp_equipo1.model.data_classes.ForgotPasswordState
 import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
 
 import mx.aro.atizaapp_equipo1.model.apiClientService.TOKEN_WEB
-import mx.aro.atizaapp_equipo1.model.apiClientService.NegociosRepository
+import mx.aro.atizaapp_equipo1.model.repository.NegociosRepository
 import mx.aro.atizaapp_equipo1.model.data_classes.NegociosState
 import mx.aro.atizaapp_equipo1.model.data_classes.Oferta
 import mx.aro.atizaapp_equipo1.model.data_classes.OfertasNegocioState
-import mx.aro.atizaapp_equipo1.model.apiClientService.OfertasRepository
+import mx.aro.atizaapp_equipo1.model.repository.OfertasRepository
 import mx.aro.atizaapp_equipo1.model.data_classes.OfertasState
 import mx.aro.atizaapp_equipo1.model.data_classes.VerificationCredencialState
-import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
+import mx.aro.atizaapp_equipo1.utils.formatUserId
 import mx.aro.atizaapp_equipo1.utils.NetworkUtils
 
 class AppVM: ViewModel() {
@@ -714,7 +714,7 @@ class AppVM: ViewModel() {
 
             // Actualizar ID formateado
             usuario.id.let { id ->
-                _idFormateado.value = formatearIdUsuario(id)
+                _idFormateado.value = formatUserId(id)
             }
 
             true
@@ -755,7 +755,7 @@ class AppVM: ViewModel() {
 
                     // Actualizar ID formateado
                     cached.usuario.id.let { id ->
-                        _idFormateado.value = formatearIdUsuario(id)
+                        _idFormateado.value = formatUserId(id)
                     }
 
                     Log.d("AppVM", "Credencial cargada desde caché: $ageInfo")

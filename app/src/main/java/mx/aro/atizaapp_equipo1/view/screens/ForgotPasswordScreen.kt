@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import mx.aro.atizaapp_equipo1.view.components.CurvedSheet
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,7 +107,8 @@ fun ForgotPasswordScreen(
                 Button(
                     onClick = { appVM.sendPasswordResetEmail() },
                     enabled = !forgotPasswordState.isLoading &&
-                            Patterns.EMAIL_ADDRESS.matcher(forgotPasswordState.email.trim()).matches(),
+                            Patterns.EMAIL_ADDRESS.matcher(forgotPasswordState.email.trim())
+                                .matches(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),

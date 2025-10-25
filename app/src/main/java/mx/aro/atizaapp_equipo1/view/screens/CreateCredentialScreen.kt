@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
@@ -26,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import mx.aro.atizaapp_equipo1.view.components.CurvedSheet
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 import java.text.SimpleDateFormat
 import java.util.*
@@ -360,29 +360,65 @@ fun CreateCredentialScreen(
                         // Validación básica
                         when {
                             curp.length != 18 -> {
-                                Toast.makeText(context, "El CURP debe tener 18 caracteres", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "El CURP debe tener 18 caracteres",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
                             nombre.isBlank() -> {
-                                Toast.makeText(context, "El nombre es requerido", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "El nombre es requerido",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
                             apellidoPaterno.isBlank() -> {
-                                Toast.makeText(context, "El apellido paterno es requerido", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "El apellido paterno es requerido",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
                             apellidoMaterno.isBlank() -> {
-                                Toast.makeText(context, "El apellido materno es requerido", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "El apellido materno es requerido",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
                             entidadRegistro.isBlank() -> {
-                                Toast.makeText(context, "Selecciona una entidad de registro", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Selecciona una entidad de registro",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
                             fechaNacimiento.isBlank() -> {
-                                Toast.makeText(context, "Selecciona una fecha de nacimiento", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Selecciona una fecha de nacimiento",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
                             edadError != null -> {
-                                Toast.makeText(context, "Tu edad debe estar entre 12 y 29 años", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    "Tu edad debe estar entre 12 y 29 años",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
+
                             else -> {
                                 // Construir el nombre completo
-                                val nombreCompleto = "$nombre $apellidoPaterno $apellidoMaterno".trim()
+                                val nombreCompleto =
+                                    "$nombre $apellidoPaterno $apellidoMaterno".trim()
 
                                 // Llamar al ViewModel para crear la cuenta
                                 appVM.createAccount(

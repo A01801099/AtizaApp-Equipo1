@@ -1,10 +1,7 @@
 package mx.aro.atizaapp_equipo1.view.screens
 
 import android.app.Activity
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,13 +24,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import mx.aro.atizaapp_equipo1.utils.ThemePrefs
+import mx.aro.atizaapp_equipo1.view.components.AjusteItemSwitch
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,28 +106,5 @@ fun AjustesScreen(
 
             Spacer(Modifier.height(24.dp))
         }
-    }
-}
-
-// ======================
-// COMPONENTES REUTILIZABLES
-// ======================
-
-@Composable
-fun AjusteItemSwitch(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(title)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
