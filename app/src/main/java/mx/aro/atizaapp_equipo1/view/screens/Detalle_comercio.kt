@@ -55,7 +55,8 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.maps.android.compose.*
 import com.google.android.gms.maps.model.LatLng
 import mx.aro.atizaapp_equipo1.R
-import mx.aro.atizaapp_equipo1.model.Oferta
+import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
+import mx.aro.atizaapp_equipo1.model.data_classes.Oferta
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 import java.text.SimpleDateFormat
@@ -174,7 +175,7 @@ fun DetalleComercioScreen(
     negocioId: Int,
     appVM: AppVM
 ) {
-    val negocioState = remember { mutableStateOf<mx.aro.atizaapp_equipo1.model.Negocio?>(null) }
+    val negocioState = remember { mutableStateOf<Negocio?>(null) }
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val markerPosition = remember { mutableStateOf<LatLng?>(null) }

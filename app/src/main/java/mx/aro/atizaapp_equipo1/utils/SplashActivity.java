@@ -1,4 +1,4 @@
-package mx.aro.atizaapp_equipo1;
+package mx.aro.atizaapp_equipo1.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -8,7 +8,8 @@ import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import mx.aro.atizaapp_equipo1.view.MainActivity;
+import mx.aro.atizaapp_equipo1.R;
+import mx.aro.atizaapp_equipo1.view.screens.MainActivity;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {

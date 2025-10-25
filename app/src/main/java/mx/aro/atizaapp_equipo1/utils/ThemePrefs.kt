@@ -1,8 +1,6 @@
-package mx.aro.atizaapp_equipo1.view.screens
+package mx.aro.atizaapp_equipo1.utils
 
 import android.content.Context
-
-
 
 object ThemePrefs {
     private const val PREFS_NAME = "theme_prefs"

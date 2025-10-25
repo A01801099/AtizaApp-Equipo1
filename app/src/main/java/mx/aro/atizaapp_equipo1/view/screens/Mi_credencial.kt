@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import mx.aro.atizaapp_equipo1.R
-import mx.aro.atizaapp_equipo1.model.Usuario
+import mx.aro.atizaapp_equipo1.model.data_classes.Usuario
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

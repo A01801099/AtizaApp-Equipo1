@@ -1,4 +1,4 @@
-package mx.aro.atizaapp_equipo1
+package mx.aro.atizaapp_equipo1.utils
 
 import com.journeyapps.barcodescanner.CaptureActivity
 

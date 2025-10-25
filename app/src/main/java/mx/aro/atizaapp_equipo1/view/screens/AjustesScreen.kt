@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import mx.aro.atizaapp_equipo1.utils.ThemePrefs
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,25 +1,19 @@
-package mx.aro.atizaapp_equipo1.model
+package mx.aro.atizaapp_equipo1.model.apiClientService
 
 import android.content.Context
+import android.util.Base64
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
+import mx.aro.atizaapp_equipo1.model.data_classes.Usuario
+import mx.aro.atizaapp_equipo1.model.data_classes.CachedCredencial
 
 // Extension para crear DataStore
 private val Context.credencialDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "credencial_store"
-)
-
-/**
- * Data class para wrapper de credencial con metadata de caché
- */
-data class CachedCredencial(
-    val usuario: Usuario,
-    val timestampMs: Long,        // Cuándo se guardó en caché
-    val version: Int = 1          // Versionado para migraciones futuras
 )
 
 /**
@@ -185,9 +179,9 @@ class CredencialRepository(private val context: Context) {
             // NOTA: Esta es una implementación simplificada usando Base64
             // Para producción, usar EncryptedSharedPreferences o EncryptedFile
             // con MasterKeys y AES-256-GCM
-            android.util.Base64.encodeToString(
+            Base64.encodeToString(
                 data.toByteArray(Charsets.UTF_8),
-                android.util.Base64.DEFAULT
+                Base64.DEFAULT
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error al cifrar datos", e)
@@ -201,7 +195,7 @@ class CredencialRepository(private val context: Context) {
     private fun decryptData(encryptedData: String): String {
         return try {
             String(
-                android.util.Base64.decode(encryptedData, android.util.Base64.DEFAULT),
+                Base64.decode(encryptedData, Base64.DEFAULT),
                 Charsets.UTF_8
             )
         } catch (e: Exception) {

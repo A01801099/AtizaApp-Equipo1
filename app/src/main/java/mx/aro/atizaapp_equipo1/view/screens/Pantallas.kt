@@ -1,4 +1,4 @@
-package mx.aro.atizaapp_equipo1.view
+package mx.aro.atizaapp_equipo1.view.screens
 
 object Routes {
     const val EXPLORAR = "explorar_comercios"

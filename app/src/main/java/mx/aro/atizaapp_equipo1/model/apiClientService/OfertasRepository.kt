@@ -1,8 +1,9 @@
-package mx.aro.atizaapp_equipo1.model
+package mx.aro.atizaapp_equipo1.model.apiClientService
 
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import mx.aro.atizaapp_equipo1.model.data_classes.Oferta
 
 class OfertasRepository(private val context: Context) {
 

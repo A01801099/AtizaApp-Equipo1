@@ -2,7 +2,6 @@ package mx.aro.atizaapp_equipo1.view.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +29,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +43,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,10 +59,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
-import coil3.compose.rememberAsyncImagePainter
 import mx.aro.atizaapp_equipo1.R
-import mx.aro.atizaapp_equipo1.model.Negocio
-import mx.aro.atizaapp_equipo1.model.NegociosRepository
+import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
+import mx.aro.atizaapp_equipo1.model.apiClientService.NegociosRepository
 import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
 import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM

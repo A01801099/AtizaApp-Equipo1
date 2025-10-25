@@ -1,7 +1,13 @@
-package mx.aro.atizaapp_equipo1.model
+package mx.aro.atizaapp_equipo1.model.apiClientService
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import mx.aro.atizaapp_equipo1.model.data_classes.CreateAccountRequest
+import mx.aro.atizaapp_equipo1.model.data_classes.CreateAccountResponse
+import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
+import mx.aro.atizaapp_equipo1.model.data_classes.NegociosApiResponse
+import mx.aro.atizaapp_equipo1.model.data_classes.OfertasApiResponse
+import mx.aro.atizaapp_equipo1.model.data_classes.Usuario
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -14,80 +20,6 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
-
-//TODO DATA CLASES EN OTRO ARCHIVO
-// Lo que tu API espera según CreateAccountSchema
-data class CreateAccountRequest (
-    val correo: String,            // ✅ requerido (usa el email de Firebase)
-    val nombre: String,            // ✅ requerido
-    val nacimiento: String,        // ✅ "YYYY-MM-DD"
-    val curp: String,               // ✅ 18 chars
-    val entidadRegistro: String,   // ✅ "AGUASCALIENTES"
-)
-
-data class CreateAccountResponse (
-    val ok: Boolean,
-    val usuario: Usuario
-)
-
-// Clase para errores de la API
-data class ApiErrorResponse(
-    val error: String,
-    val message: String? = null,
-    val details: Map<String, Any>? = null,
-    val expected: String? = null,
-    val provided: String? = null,
-    val proveedor: Map<String, Any>? = null,
-    val status: Int? = null,
-    val data: Any? = null,
-    val code: String? = null,
-    val providerValue: String? = null,
-    val sqlState: String? = null
-)
-
-data class Usuario (
-    val id: Int,                  // auto_increment → usa Long por seguridad
-    val correo: String,
-    val nombre: String,
-    val nacimiento: String,        // mantenlo como String por API 24
-    val estado: String,              // "MEXICO" (según tu backend)
-    val curp: String
-)
-
-data class NegociosApiResponse(
-    val items: List<Negocio>,
-    val nextCursor: String?
-)
-
-data class Negocio (
-    val id: Int,
-    val usuarioId : Int,
-    val nombre: String,
-    val tipo: String,
-    val ubicacion: String,
-    val calificacion: String,
-    val telefono: String,
-    val imagen: String,
-    val email: String,
-    val descripcion: String
-)
-
-data class OfertasApiResponse(
-    val items: List<Oferta>,
-    val nextCursor: String?
-)
-
-data class Oferta(
-    val id: Int,
-    val negocioId: Int,
-    val titulo: String,
-    val descripcion: String,
-    val precio: String,
-    val fechaInicio: String,
-    val fechaFin: String?,
-    val estadoId: Int,
-    val categoria: String
-)
 
 
 // Interceptor para manejar timeouts dinámicos por endpoint

@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.Firebase
-import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
@@ -20,100 +19,33 @@ import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import mx.aro.atizaapp_equipo1.model.ApiClient
-import mx.aro.atizaapp_equipo1.model.CreateAccountRequest
-import mx.aro.atizaapp_equipo1.model.CreateAccountResponse
-import mx.aro.atizaapp_equipo1.model.CredencialRepository
-import mx.aro.atizaapp_equipo1.model.Negocio
-import mx.aro.atizaapp_equipo1.model.NegociosApiResponse
+import mx.aro.atizaapp_equipo1.model.apiClientService.ApiClient
+import mx.aro.atizaapp_equipo1.model.data_classes.ApiErrorResponse
+import mx.aro.atizaapp_equipo1.model.data_classes.AuthState
+import mx.aro.atizaapp_equipo1.model.data_classes.CreateAccountRequest
+import mx.aro.atizaapp_equipo1.model.data_classes.CreateCredentialState
+import mx.aro.atizaapp_equipo1.model.apiClientService.CredencialRepository
+import mx.aro.atizaapp_equipo1.model.data_classes.CredencialState
+import mx.aro.atizaapp_equipo1.model.data_classes.ForgotPasswordState
+import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
 
-import mx.aro.atizaapp_equipo1.model.TOKEN_WEB
-import mx.aro.atizaapp_equipo1.model.Usuario
-import androidx.compose.foundation.lazy.items
-import androidx.room.util.copy
-import mx.aro.atizaapp_equipo1.model.NegociosRepository
-import mx.aro.atizaapp_equipo1.model.Oferta
-import mx.aro.atizaapp_equipo1.model.OfertasRepository
-import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
+import mx.aro.atizaapp_equipo1.model.apiClientService.TOKEN_WEB
+import mx.aro.atizaapp_equipo1.model.apiClientService.NegociosRepository
+import mx.aro.atizaapp_equipo1.model.data_classes.NegociosState
+import mx.aro.atizaapp_equipo1.model.data_classes.Oferta
+import mx.aro.atizaapp_equipo1.model.data_classes.OfertasNegocioState
+import mx.aro.atizaapp_equipo1.model.apiClientService.OfertasRepository
+import mx.aro.atizaapp_equipo1.model.data_classes.OfertasState
+import mx.aro.atizaapp_equipo1.model.data_classes.VerificationCredencialState
 import mx.aro.atizaapp_equipo1.view.screens.formatearIdUsuario
 import mx.aro.atizaapp_equipo1.utils.NetworkUtils
-
-// Data class para representar el estado de la UI de autenticación
-data class AuthState(
-    val isLoading: Boolean = false,
-    val emailError: String? = null,
-    val passwordError: String? = null,
-    val generalMessage: String? = null,
-    val registrationComplete: Boolean = false
-)
-
-// Data class para representar el estado de la pantalla de la credencial
-data class CredencialState(
-    val isLoading: Boolean = false,
-    val usuario: Usuario? = null,
-    val error: String? = null
-)
-
-// Data class para verificar SOLO la existencia de la credencial (para navegación)
-data class VerificationCredencialState(
-    val isLoading: Boolean = false,
-    val hasCredencial: Boolean = false,
-    val error: String? = null,
-    val isNetworkError: Boolean = false
-)
-
-// Data class para el estado de la lista de negocios con paginación por cursor
-data class NegociosState(
-    val isLoadingInitial: Boolean = false, // Carga de pantalla completa la primera vez
-    val isLoadingMore: Boolean = false,    // Spinner al final de la lista para paginación
-    val negocios: List<Negocio> = emptyList(),
-    val error: String? = null,
-    val nextCursor: String? = null,        // Cursor para la siguiente página. Nulo para la primera llamada.
-    val endReached: Boolean = false        // true si la API devuelve un cursor nulo
-)
-
-// Data class para el estado de recuperación de contraseña
-data class ForgotPasswordState(
-    val email: String = "",
-    val isLoading: Boolean = false,
-    val sent: Boolean = false,
-    val error: String? = null
-)
-
-// Data class para el estado de creación de credencial
-data class CreateCredentialState(
-    val isLoading: Boolean = false,
-    val success: Boolean = false,
-    val errorTitle: String? = null,
-    val errorMessage: String? = null,
-    val canRetry: Boolean = false  // Indica si se puede mostrar botón "Reintentar"
-)
-
-data class OfertasState(
-    val isLoadingInitial: Boolean = false,
-    val isLoadingMore: Boolean = false,
-    val ofertas: List<Oferta> = emptyList(),
-    val error: String? = null,
-    val nextCursor: String? = null,
-    val endReached: Boolean = false
-)
-
-// Data class para el estado de ofertas de un negocio específico
-data class OfertasNegocioState(
-    val isLoading: Boolean = false,
-    val ofertas: List<Oferta> = emptyList(),
-    val error: String? = null,
-    val negocioId: Int? = null
-)
 
 class AppVM: ViewModel() {
 
     //API-ATIZAAP-API
     private val api = ApiClient.service
-
     private val auth: FirebaseAuth = Firebase.auth
 
     // Repository para persistencia local de credencial
@@ -425,7 +357,10 @@ class AppVM: ViewModel() {
 
     fun hacerLoginEmailPassword(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
-            _authState.value = AuthState(emailError = if(email.isBlank()) "El correo no puede estar vacío" else null, passwordError = if(pass.isBlank()) "La contraseña no puede estar vacía" else null)
+            _authState.value = AuthState(
+                emailError = if (email.isBlank()) "El correo no puede estar vacío" else null,
+                passwordError = if (pass.isBlank()) "La contraseña no puede estar vacía" else null
+            )
             return
         }
         viewModelScope.launch {
@@ -460,7 +395,10 @@ class AppVM: ViewModel() {
 
     fun hacerSignUp(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
-            _authState.value = AuthState(emailError = if(email.isBlank()) "El correo no puede estar vacío" else null, passwordError = if(pass.isBlank()) "La contraseña no puede estar vacía" else null)
+            _authState.value = AuthState(
+                emailError = if (email.isBlank()) "El correo no puede estar vacío" else null,
+                passwordError = if (pass.isBlank()) "La contraseña no puede estar vacía" else null
+            )
             return
         }
         viewModelScope.launch {
@@ -470,7 +408,10 @@ class AppVM: ViewModel() {
                     if (task.isSuccessful) {
                         task.result.user?.sendEmailVerification()
                         auth.signOut()
-                        _authState.value = AuthState(registrationComplete = true, generalMessage = "¡Registro exitoso! Revisa tu correo para verificar la cuenta.")
+                        _authState.value = AuthState(
+                            registrationComplete = true,
+                            generalMessage = "¡Registro exitoso! Revisa tu correo para verificar la cuenta."
+                        )
                     } else {
                         val exception = task.exception
                         val newState = when (exception) {
@@ -607,7 +548,7 @@ class AppVM: ViewModel() {
         try {
             val errorBody = exception.response()?.errorBody()?.string()
             val gson = com.google.gson.Gson()
-            val apiError = gson.fromJson(errorBody, mx.aro.atizaapp_equipo1.model.ApiErrorResponse::class.java)
+            val apiError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
 
             val statusCode = exception.code()
 
@@ -806,7 +747,9 @@ class AppVM: ViewModel() {
                         it.copy(
                             isLoading = false,
                             usuario = cached.usuario,
-                            error = null
+                            error = if (credencialRepository.isCacheStale(hours = 1)) {
+                                "Sincronizando..."
+                            } else null
                         )
                     }
 
@@ -1225,6 +1168,7 @@ class AppVM: ViewModel() {
     }
 
 
+
     // ========== FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA ==========
 
     // Función para actualizar el email en el estado de recuperación de contraseña
@@ -1313,6 +1257,4 @@ class AppVM: ViewModel() {
             // NO ponemos endReached = true, para que loadNextPageOfNegocios pueda seguir cargando
         )
     }
-
-
 }
