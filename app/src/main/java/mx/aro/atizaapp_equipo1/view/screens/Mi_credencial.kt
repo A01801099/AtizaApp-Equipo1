@@ -37,15 +37,16 @@ import androidx.navigation.NavHostController
 import mx.aro.atizaapp_equipo1.view.components.CredencialContentView
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
+/**
+ * Muestra la pantalla principal de la credencial del usuario.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
-    // 1. Llama a getMe() una sola vez cuando la pantalla aparece
     LaunchedEffect(key1 = Unit) {
         appVM.getMe()
     }
 
-    // 2. Observa el idFormateado y el estado de la credencial desde el ViewModel
     val idFormateado by appVM.idFormateado.collectAsState()
     val credencialState by appVM.credencialState.collectAsState()
 
@@ -68,7 +69,7 @@ fun MiCredencialScreen(navController: NavHostController, appVM: AppVM) {
         Column(
             modifier = Modifier.padding(innerPadding)
         ) {
-            // Banner de estado de sincronización (offline/online)
+            // Banner de estado de sincronización
             credencialState.error?.let { errorMsg ->
                 if (errorMsg.contains("offline", ignoreCase = true) ||
                     errorMsg.contains("Sincronizando", ignoreCase = true)

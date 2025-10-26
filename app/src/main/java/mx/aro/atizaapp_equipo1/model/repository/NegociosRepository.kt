@@ -6,6 +6,9 @@ import com.google.gson.reflect.TypeToken
 import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
 import java.io.File
 
+/**
+ * Gestiona el almacenamiento en caché de la lista de negocios.
+ */
 class NegociosRepository(private val context: Context) {
 
     private val fileName = "negocios_cache.json"

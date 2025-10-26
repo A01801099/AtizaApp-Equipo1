@@ -11,10 +11,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import mx.aro.atizaapp_equipo1.R;
 import mx.aro.atizaapp_equipo1.view.screens.MainActivity;
 
+/**
+ * Muestra una pantalla de bienvenida (splash screen) al iniciar la aplicación.
+ */
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
 
-    private static final int DURACION_SPLASH = 250; // 3 segundos
+    private static final int DURACION_SPLASH = 250;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,5 +1,8 @@
 package mx.aro.atizaapp_equipo1.view.navigation
 
+/**
+ * Define las rutas de navegación de la aplicación como constantes.
+ */
 object Routes {
     // Loading
     const val LOADING = "loading"

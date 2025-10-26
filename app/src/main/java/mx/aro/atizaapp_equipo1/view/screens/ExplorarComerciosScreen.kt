@@ -47,12 +47,12 @@ import mx.aro.atizaapp_equipo1.ui.theme.AtizaAppEquipo1Theme
 import mx.aro.atizaapp_equipo1.view.components.NegocioItem
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
-// --------- PANTALLA EXPLORAR COMERCIOS (NEGOCIOS REALES) ---------
+/**
+ * Muestra la lista de comercios, permitiendo buscar y filtrar por categoría.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-// --------- PANTALLA EXPLORAR COMERCIOS (NEGOCIOS REALES) ---------
-
 fun ExplorarComerciosScreen(
     navController: NavHostController,
     appVM: AppVM = viewModel(),
@@ -60,7 +60,6 @@ fun ExplorarComerciosScreen(
 ) {
 
     LaunchedEffect(Unit) {
-        // Cargar TODOS los negocios al inicio
         if (appVM.negociosState.value.negocios.isEmpty()) {
             appVM.loadAllNegocios()
         }
@@ -87,7 +86,6 @@ fun ExplorarComerciosScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 🔍 Barra de búsqueda
             TextField(
                 value = searchText,
                 onValueChange = { searchText = it },
@@ -98,7 +96,7 @@ fun ExplorarComerciosScreen(
                     .padding(8.dp)
             )
 
-            // 🏷️ Botones de categorías
+
             Row(
                 modifier = Modifier
                     .horizontalScroll(rememberScrollState())
@@ -143,10 +141,8 @@ fun ExplorarComerciosScreen(
                     items(filtered) { negocio ->
                         NegocioItem(negocio, navController)
                     }
-
                 }
 
-                // ⚠️ Mostrar error
                 state.error?.let { errorMsg ->
                     Text(errorMsg, color = Color.Red, modifier = Modifier.padding(8.dp))
                 }

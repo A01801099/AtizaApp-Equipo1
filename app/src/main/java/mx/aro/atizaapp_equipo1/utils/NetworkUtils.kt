@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 /**
- * Utilidades para detectar el estado de conectividad de red
+ * Proporciona utilidades para verificar y observar el estado de la red.
  */
 object NetworkUtils {
 
     /**
-     * Verificar si hay conexión a internet disponible
+     * Verifica si hay una conexión a Internet activa y validada.
      * @param context Contexto de la aplicación
      * @return true si hay conexión, false si no
      */
@@ -30,7 +30,7 @@ object NetworkUtils {
     }
 
     /**
-     * Flow reactivo que emite cambios en el estado de conectividad
+     * Observa los cambios en la conectividad de red en tiempo real.
      * @param context Contexto de la aplicación
      * @return Flow<Boolean> que emite true cuando hay conexión, false cuando no
      */

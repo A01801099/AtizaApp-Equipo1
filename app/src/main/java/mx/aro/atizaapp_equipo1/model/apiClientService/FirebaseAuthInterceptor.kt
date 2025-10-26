@@ -9,6 +9,10 @@ import kotlinx.coroutines.tasks.await
 import okhttp3.Interceptor
 import okhttp3.Response
 
+/**
+ * Intercepta peticiones para inyectar el token de autenticación de Firebase.
+ * Refresca el token automáticamente si la petición devuelve un error 401.
+ */
 class FirebaseAuthInterceptor(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) : Interceptor {
@@ -29,7 +33,7 @@ class FirebaseAuthInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
 
-        // 1️⃣ Obtener token (usa caché si es válido)
+        // Obtener token (usa caché si es válido)
         val token = runBlocking(Dispatchers.IO) {
             try {
                 idToken(false)
@@ -39,15 +43,15 @@ class FirebaseAuthInterceptor(
             }
         }
 
-        // 2️⃣ Agregar header Authorization
+        // Agregar header Authorization
         val withAuth = if (token != null)
             original.newBuilder().addHeader("Authorization", "Bearer $token").build()
         else original
 
-        // 3️⃣ Hacer request
+        // Hacer request
         var resp = chain.proceed(withAuth)
 
-        // 4️⃣ Si es 401, refrescar token directo con Firebase y reintentar
+        // Si es 401, refrescar token y reintentar
         if (resp.code == 401) {
             resp.close()
             val refreshed = runBlocking(Dispatchers.IO) {

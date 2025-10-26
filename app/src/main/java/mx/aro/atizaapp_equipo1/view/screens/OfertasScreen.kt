@@ -43,6 +43,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.aro.atizaapp_equipo1.view.components.OfertaItem
 
+/**
+ * Muestra la lista de ofertas y descuentos, permitiendo buscar y filtrar.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -59,7 +62,6 @@ fun OfertasScreen(
         "Belleza", "Educación", "Moda", "Servicios"
     )
 
-    // Cargar TODAS las ofertas al inicio
     LaunchedEffect(Unit) {
         if (state.ofertas.isEmpty()) appVM.loadAllOfertas()
     }

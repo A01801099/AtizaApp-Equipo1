@@ -1,10 +1,13 @@
 package mx.aro.atizaapp_equipo1.model.data_classes
 
+/**
+ * Representa la entidad de un usuario.
+ */
 data class Usuario (
-    val id: Int,                  // auto_increment → usa Long por seguridad
+    val id: Int,
     val correo: String,
     val nombre: String,
-    val nacimiento: String,        // mantenlo como String por API 24
-    val estado: String,              // "MEXICO" (según tu backend)
+    val nacimiento: String,
+    val estado: String,
     val curp: String
 )

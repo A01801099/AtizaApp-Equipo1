@@ -2,6 +2,9 @@ package mx.aro.atizaapp_equipo1.utils
 
 import android.content.Context
 
+/**
+ * Gestiona las preferencias del tema de la aplicación (modo oscuro/claro).
+ */
 object ThemePrefs {
     private const val PREFS_NAME = "theme_prefs"
     private const val KEY_DARK_MODE = "dark_mode"

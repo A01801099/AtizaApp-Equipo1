@@ -30,6 +30,9 @@ import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Muestra el formulario para crear la credencial del usuario.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateCredentialScreen(
@@ -38,7 +41,6 @@ fun CreateCredentialScreen(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Estados para controlar el flujo de disclaimers
     var aceptoAvisoPrivacidad by remember { mutableStateOf(false) }
     var aceptoDeclaratoriaEdad by remember { mutableStateOf(false) }
 
@@ -64,7 +66,7 @@ fun CreateCredentialScreen(
         }
     }
 
-    // Una vez aceptados ambos disclaimers, mostrar el formulario
+    // Formulario principal
     val purple = Color(0xFF5B2DCC)
     val white = Color(0xFFFFFFFF)
 
@@ -83,7 +85,6 @@ fun CreateCredentialScreen(
     val scrollState = rememberScrollState()
     val calendar = Calendar.getInstance()
 
-    // Función para calcular la edad
     fun calcularEdad(fechaNac: String): Int? {
         return try {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -94,7 +95,7 @@ fun CreateCredentialScreen(
 
             var edad = today.get(Calendar.YEAR) - birthCalendar.get(Calendar.YEAR)
 
-            // Ajustar si aún no ha cumplido años este año
+            // Ajustar si aún no ha cumplido años
             if (today.get(Calendar.MONTH) < birthCalendar.get(Calendar.MONTH) ||
                 (today.get(Calendar.MONTH) == birthCalendar.get(Calendar.MONTH) &&
                         today.get(Calendar.DAY_OF_MONTH) < birthCalendar.get(Calendar.DAY_OF_MONTH))) {

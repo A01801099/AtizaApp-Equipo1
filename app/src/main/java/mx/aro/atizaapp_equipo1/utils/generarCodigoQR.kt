@@ -7,6 +7,7 @@ import com.google.zxing.common.BitMatrix
 
 /**
  * Función auxiliar para generar un código QR desde un texto
+ * Genera un Bitmap de código QR a partir de una cadena de texto.
  */
 fun generarCodigoQR(texto: String, size: Int = 512): Bitmap? {
     return try {

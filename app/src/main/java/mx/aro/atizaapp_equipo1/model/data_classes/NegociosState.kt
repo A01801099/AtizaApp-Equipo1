@@ -1,11 +1,13 @@
 package mx.aro.atizaapp_equipo1.model.data_classes
 
-// Data class para el estado de la lista de negocios con paginación por cursor
+/**
+ * Contiene el estado de la UI para la lista de negocios, incluyendo paginación.
+ */
 data class NegociosState(
-    val isLoadingInitial: Boolean = false, // Carga de pantalla completa la primera vez
-    val isLoadingMore: Boolean = false,    // Spinner al final de la lista para paginación
+    val isLoadingInitial: Boolean = false,
+    val isLoadingMore: Boolean = false,
     val negocios: List<Negocio> = emptyList(),
     val error: String? = null,
-    val nextCursor: String? = null,        // Cursor para la siguiente página. Nulo para la primera llamada.
-    val endReached: Boolean = false        // true si la API devuelve un cursor nulo
+    val nextCursor: String? = null,
+    val endReached: Boolean = false
 )

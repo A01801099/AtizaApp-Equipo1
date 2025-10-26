@@ -1,5 +1,8 @@
 package mx.aro.atizaapp_equipo1.model.data_classes
 
+/**
+ * Representa la entidad de un negocio.
+ */
 data class Negocio (
     val id: Int,
     val usuarioId : Int,

@@ -32,6 +32,9 @@ import androidx.compose.ui.unit.sp
 import mx.aro.atizaapp_equipo1.model.data_classes.Oferta
 import mx.aro.atizaapp_equipo1.utils.formatFechaOfertas
 
+/**
+ * Tarjeta que muestra un elemento de la lista de ofertas.
+ */
 @Composable
 fun OfertaItem(oferta: Oferta, onClick: () -> Unit) {
     Card(
@@ -53,7 +56,7 @@ fun OfertaItem(oferta: Oferta, onClick: () -> Unit) {
         ) {
             // Ícono de oferta
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .size(56.dp)
                     .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer),
@@ -63,15 +66,15 @@ fun OfertaItem(oferta: Oferta, onClick: () -> Unit) {
                     imageVector = Icons.Default.LocalOffer,
                     contentDescription = "Oferta",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.Companion.size(32.dp)
+                    modifier = Modifier.size(32.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.Companion.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             // Contenido de la oferta
             Column(
-                modifier = Modifier.Companion.weight(1f)
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = oferta.titulo,
@@ -79,24 +82,24 @@ fun OfertaItem(oferta: Oferta, onClick: () -> Unit) {
                     fontWeight = FontWeight.Companion.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
-                    overflow = TextOverflow.Companion.Ellipsis
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.Companion.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = oferta.descripcion,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
-                    overflow = TextOverflow.Companion.Ellipsis
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.Companion.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Fecha de vencimiento
                 Row(
-                    verticalAlignment = Alignment.Companion.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.CalendarToday,

@@ -5,6 +5,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import mx.aro.atizaapp_equipo1.model.data_classes.Oferta
 
+/**
+ * Gestiona el almacenamiento en caché de la lista de ofertas.
+ */
 class OfertasRepository(private val context: Context) {
 
     private val prefs = context.getSharedPreferences("ofertas_cache", Context.MODE_PRIVATE)

@@ -52,6 +52,10 @@ import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 import mx.aro.atizaapp_equipo1.view.components.OfertaCard
 
+/**
+ *Pantalla con los detalles del comercio seleccionado, ofertas, ubicacion y descripcion
+ */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleComercioScreen(

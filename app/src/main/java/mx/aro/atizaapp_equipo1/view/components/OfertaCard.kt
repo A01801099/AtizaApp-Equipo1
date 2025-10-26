@@ -31,6 +31,9 @@ import androidx.compose.ui.unit.sp
 import mx.aro.atizaapp_equipo1.model.data_classes.Oferta
 import mx.aro.atizaapp_equipo1.utils.formatFecha
 
+/**
+ * Tarjeta que muestra la información de una oferta.
+ */
 @Composable
 fun OfertaCard(oferta: Oferta, modifier: Modifier = Modifier.Companion) {
     Card(

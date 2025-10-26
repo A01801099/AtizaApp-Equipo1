@@ -31,6 +31,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mx.aro.atizaapp_equipo1.view.components.CurvedSheet
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
+/**
+ * Muestra el formulario de registro de nuevos usuarios.
+ */
 @Composable
 fun RegisterScreen(
     appVM: AppVM,

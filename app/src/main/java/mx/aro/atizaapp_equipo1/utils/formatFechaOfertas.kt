@@ -3,6 +3,9 @@ package mx.aro.atizaapp_equipo1.utils
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+/**
+ * Formatea una cadena de fecha de oferta a "dd/MM/yyyy".
+ */
 // Función auxiliar para formatear fechas
 fun formatFechaOfertas(fecha: String): String {
     return try {

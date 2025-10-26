@@ -1,12 +1,9 @@
 package mx.aro.atizaapp_equipo1.utils
 
 /**
- * 🔧 Función para dar formato al ID del usuario:
- * Ejemplo:
- * id = 1      → 0000-0000-0000-0001
- * id = 10000  → 0000-0000-0001-0000
+ * Formatea un ID de usuario a un formato de 16 dígitos agrupados.
  */
 fun formatUserId(id: Int): String {
-    val idStr = id.toString().padStart(16, '0') // asegura 16 dígitos
-    return idStr.chunked(4).joinToString("-")  // agrupa de 4 en 4 con guiones
+    val idStr = id.toString().padStart(16, '0')
+    return idStr.chunked(4).joinToString("-")
 }

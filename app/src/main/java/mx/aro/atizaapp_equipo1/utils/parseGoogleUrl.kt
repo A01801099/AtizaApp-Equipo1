@@ -14,13 +14,10 @@ fun convertGoogleDriveUrl(url: String?): String {
         return "https://via.placeholder.com/300x200?text=Sin+Imagen"
     }
 
-    // Si ya es una URL directa de Google Drive en formato correcto
     if (url.contains("drive.google.com/uc?")) {
         return url
     }
 
-    // Extraer el FILE_ID de la URL de Google Drive
-    // Formato: https://drive.google.com/file/d/FILE_ID/view?usp=drive_link
     val fileIdRegex = """/d/([a-zA-Z0-9_-]+)""".toRegex()
     val matchResult = fileIdRegex.find(url)
 
@@ -28,7 +25,6 @@ fun convertGoogleDriveUrl(url: String?): String {
         val fileId = matchResult.groupValues[1]
         "https://drive.google.com/uc?export=view&id=$fileId"
     } else {
-        // Si no es una URL de Google Drive o no se pudo extraer el ID
         url
     }
 }

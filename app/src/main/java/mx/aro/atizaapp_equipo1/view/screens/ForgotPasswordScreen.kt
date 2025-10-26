@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import mx.aro.atizaapp_equipo1.view.components.CurvedSheet
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
+/**
+ * Muestra el formulario para solicitar el restablecimiento de contraseña.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordScreen(
@@ -58,7 +61,6 @@ fun ForgotPasswordScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Campo de correo electrónico
                 OutlinedTextField(
                     value = forgotPasswordState.email,
                     onValueChange = { appVM.onForgotPasswordEmailChange(it) },
@@ -73,7 +75,6 @@ fun ForgotPasswordScreen(
                     placeholder = { Text("ejemplo@correo.com") }
                 )
 
-                // Mensaje de error
                 val errorMessage = forgotPasswordState.error
                 if (errorMessage != null) {
                     Text(
@@ -84,7 +85,6 @@ fun ForgotPasswordScreen(
                     )
                 }
 
-                // Mensaje de éxito
                 if (forgotPasswordState.sent) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -103,7 +103,6 @@ fun ForgotPasswordScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Botón de enviar
                 Button(
                     onClick = { appVM.sendPasswordResetEmail() },
                     enabled = !forgotPasswordState.isLoading &&
@@ -128,7 +127,6 @@ fun ForgotPasswordScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Botón para volver al login
                 TextButton(
                     onClick = onBackToLogin,
                     enabled = !forgotPasswordState.isLoading

@@ -4,6 +4,9 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+/**
+ * Construye y configura la instancia de Retrofit para el servicio de API.
+ */
 fun provideApi(): ApiService {
     val client = OkHttpClient.Builder()
         .addInterceptor(FirebaseAuthInterceptor())

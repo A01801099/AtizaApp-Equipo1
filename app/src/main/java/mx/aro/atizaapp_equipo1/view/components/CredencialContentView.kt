@@ -28,6 +28,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * Muestra el contenido visual de la credencial del usuario.
+ */
 @Composable
 fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
     val fechaVencimiento = remember(usuario.nacimiento) {
@@ -54,7 +57,7 @@ fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
     ) {
         Spacer(modifier = Modifier.Companion.height(16.dp))
 
-        // 🖼️ Box para superponer el ID sobre la imagen
+        // Box para superponer el ID sobre la imagen
         Box(
             modifier = Modifier.Companion
                 .fillMaxWidth()
@@ -82,7 +85,7 @@ fun CredencialContentView(usuario: Usuario, idFormateado: String?) {
 
         Spacer(modifier = Modifier.Companion.height(24.dp))
 
-        // 🧾 Datos del usuario
+        // Datos del usuario
         Text(
             text = "CURP: ${usuario.curp}",
             fontSize = 18.sp,

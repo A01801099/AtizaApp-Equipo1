@@ -51,9 +51,9 @@ fun LoginScreen(
     appVM: AppVM,
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onForgotPasswordClick: () -> Unit  // ← AGREGAR ESTE PARÁMETRO
+    onForgotPasswordClick: () -> Unit
 ) {
-    val purple = Color(0xFF5B2DCC) // morado del mock
+    val purple = Color(0xFF5B2DCC)
     val white = Color(0xFFFFFFFF)
 
     var email by remember { mutableStateOf("") }
@@ -67,12 +67,10 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
     val emailFocusRequester = remember { FocusRequester() }
 
-    // Google Sign-In launcher
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         try {
-            // Verificar conexión ANTES de procesar el resultado
             if (!isNetworkAvailable) {
                 Toast.makeText(
                     context,

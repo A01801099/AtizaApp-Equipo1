@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.first
 import mx.aro.atizaapp_equipo1.model.data_classes.Usuario
 import mx.aro.atizaapp_equipo1.model.data_classes.CachedCredencial
 
-// Extension para crear DataStore
 private val Context.credencialDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "credencial_store"
 )
@@ -25,7 +24,6 @@ class CredencialRepository(private val context: Context) {
     private val dataStore = context.credencialDataStore
     private val gson = Gson()
 
-    // Keys para DataStore
     private object PreferencesKeys {
         val CREDENCIAL_JSON = stringPreferencesKey("credencial_json_encrypted")
         val TIMESTAMP = longPreferencesKey("credencial_timestamp")
@@ -76,7 +74,6 @@ class CredencialRepository(private val context: Context) {
             val encryptedJson = preferences[PreferencesKeys.CREDENCIAL_JSON] ?: return null
             val timestamp = preferences[PreferencesKeys.TIMESTAMP] ?: return null
 
-            // Verificar TTL (Time To Live)
             val age = System.currentTimeMillis() - timestamp
             if (age > TTL_MS) {
                 Log.d(TAG, "Credencial expirada (TTL: $TTL_DAYS días). Limpiando...")
@@ -90,7 +87,6 @@ class CredencialRepository(private val context: Context) {
             Log.d(TAG, "Credencial cargada desde caché (edad: ${age / 1000 / 60 / 60} horas)")
             cached
         } catch (e: Exception) {
-            // Error de descifrado/deserialización → limpiar datos corruptos
             Log.e(TAG, "Error al leer credencial. Limpiando caché corrupto...", e)
             clearCredencial()
             null
@@ -112,7 +108,6 @@ class CredencialRepository(private val context: Context) {
                 return false
             }
 
-            // Verificar TTL
             val age = System.currentTimeMillis() - timestamp
             age <= TTL_MS
         } catch (e: Exception) {
@@ -122,7 +117,7 @@ class CredencialRepository(private val context: Context) {
     }
 
     /**
-     * Limpiar credencial del caché (por logout o expiración)
+     * Limpia la credencial del caché local.
      */
     suspend fun clearCredencial() {
         try {
@@ -167,18 +162,8 @@ class CredencialRepository(private val context: Context) {
         }
     }
 
-    // ==================== CIFRADO INTERNO ====================
-
-    /**
-     * Cifrar datos usando Security Crypto (AES-256 con Android Keystore)
-     * Implementación simplificada usando Base64 para esta versión
-     * TODO: Implementar cifrado real con EncryptedSharedPreferences para producción
-     */
     private fun encryptData(data: String): String {
         return try {
-            // NOTA: Esta es una implementación simplificada usando Base64
-            // Para producción, usar EncryptedSharedPreferences o EncryptedFile
-            // con MasterKeys y AES-256-GCM
             Base64.encodeToString(
                 data.toByteArray(Charsets.UTF_8),
                 Base64.DEFAULT
@@ -189,9 +174,6 @@ class CredencialRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Descifrar datos
-     */
     private fun decryptData(encryptedData: String): String {
         return try {
             String(

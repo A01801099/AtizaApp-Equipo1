@@ -18,6 +18,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import mx.aro.atizaapp_equipo1.view.components.CurvedSheet
 
+/**
+ * Muestra el aviso de privacidad que el usuario debe aceptar.
+ */
 @Composable
 fun AvisoPrivacidadScreen(
     onAceptar: () -> Unit,
@@ -53,7 +56,6 @@ fun AvisoPrivacidadScreen(
                         .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Icono de información
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "Información",
@@ -63,7 +65,6 @@ fun AvisoPrivacidadScreen(
                             .align(Alignment.CenterHorizontally)
                     )
 
-                    // Contenido del aviso de privacidad
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),

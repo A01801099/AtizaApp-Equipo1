@@ -22,6 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Banner que indica que la aplicación está en modo sin conexión.
+ */
 @Composable
 fun OfflineBanner() {
     Box(

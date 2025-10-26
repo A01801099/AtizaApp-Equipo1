@@ -35,6 +35,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import mx.aro.atizaapp_equipo1.view.components.CurvedSheet
 
+/**
+ * Muestra la declaratoria de edad que el usuario debe aceptar.
+ */
 @Composable
 fun DeclaratoriaEdadScreen(
     onAceptar: () -> Unit,
@@ -66,24 +69,22 @@ fun DeclaratoriaEdadScreen(
                     .align(Alignment.Companion.Center)
             ) {
                 Column(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxWidth()
                         .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Icono de advertencia
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = "Advertencia",
                         tint = purple,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .size(64.dp)
-                            .align(Alignment.Companion.CenterHorizontally)
+                            .align(Alignment.CenterHorizontally)
                     )
 
-                    // Contenido de la declaratoria
                     Card(
-                        modifier = Modifier.Companion.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)

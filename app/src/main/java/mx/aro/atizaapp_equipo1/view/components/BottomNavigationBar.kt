@@ -15,7 +15,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-// -------------------- BOTTOM NAVIGATION BAR --------------------
+/**
+ * Barra de navegación inferior de la aplicación.
+ */
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route

@@ -33,6 +33,9 @@ import mx.aro.atizaapp_equipo1.utils.ThemePrefs
 import mx.aro.atizaapp_equipo1.view.components.AjusteItemSwitch
 import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
+/**
+ * Muestra la pantalla de configuración de la aplicación.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AjustesScreen(
@@ -42,7 +45,6 @@ fun AjustesScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    // 🌓 Leer modo oscuro guardado al iniciar
     var darkModeEnabled by rememberSaveable { mutableStateOf(ThemePrefs.isDarkMode(context)) }
 
     Scaffold(
@@ -56,9 +58,7 @@ fun AjustesScreen(
                 .verticalScroll(scrollState)
                 .fillMaxSize()
         ) {
-            // ======================
-            // 🧭 SECCIÓN: Apariencia
-            // ======================
+
             Text(
                 text = "Apariencia",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -72,7 +72,6 @@ fun AjustesScreen(
                     darkModeEnabled = enabled
                     ThemePrefs.setDarkMode(context, enabled)
 
-                    // 🔄 Reiniciar la actividad para aplicar el nuevo tema
                     val activity = context as Activity
                     activity.recreate()
                 }
@@ -80,16 +79,13 @@ fun AjustesScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ======================
-            // 🔓 SECCIÓN: Sesión
-            // ======================
+
             Text(
                 text = "Sesión",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(16.dp)
             )
 
-            // ✅ BOTÓN DE LOGOUT
             ElevatedButton(
                 onClick = { appVM.hacerLogout(context) },
                 modifier = Modifier

@@ -37,18 +37,20 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+/**
+ * Muestra la información de contacto y ubicación.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactoScreen(navController: NavHostController) {
 
-    // 📍 Coordenadas de la Dirección de Juventud en Atizapán
     val juventudLocation = LatLng(19.5570659, -99.2422345)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(juventudLocation, 15f)
     }
 
     val scrollState = rememberScrollState()
-    val context = LocalContext.current // Contexto para abrir la app de teléfono
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -89,7 +91,6 @@ fun ContactoScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🗺️ Mapa interactivo con marcador
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -109,7 +110,6 @@ fun ContactoScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 📞 Teléfono clicable
             Text(
                 text = "Teléfono: 55-16-68-17-48",
                 fontSize = 16.sp,

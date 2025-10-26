@@ -46,14 +46,7 @@ import mx.aro.atizaapp_equipo1.viewmodel.AppVM
 
 
 /**
- * Pantalla de Código QR de la Credencial
- * Modificada para usar caché local con sincronización en background
- *
- * OPTIMIZACIONES:
- * - Carga instantánea desde caché (< 20ms)
- * - Genera QR inmediatamente con datos locales
- * - Sincroniza en background si es necesario
- * - Muestra banner de estado (online/offline/sincronizando)
+ * Muestra el código QR de la credencial del usuario.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +58,7 @@ fun CodigoQRCredencialScreen(
     val credState by appVM.credencialState.collectAsState()
     val idFormateado by appVM.idFormateado.collectAsState()
 
-    // Cargar credencial (primero intenta caché, luego sincroniza si es necesario)
+    // Cargar credencial
     LaunchedEffect(Unit) {
         appVM.getMe()
     }
@@ -73,7 +66,7 @@ fun CodigoQRCredencialScreen(
     // Obtener idUsuario si existe
     val idUsuario: Int? = credState.usuario?.id
 
-    // Generar QR con el ID formateado (usa el del ViewModel que ya está formateado)
+    // Generar QR con el ID formateado
     val qrBitmap: Bitmap? = remember(idFormateado) {
         idFormateado?.let { generarCodigoQR(it) }
     }

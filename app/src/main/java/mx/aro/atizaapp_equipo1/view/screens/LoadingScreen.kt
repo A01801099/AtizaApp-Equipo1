@@ -18,6 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Muestra una pantalla de carga genérica.
+ */
 @Composable
 fun LoadingScreen(
     modifier: Modifier = Modifier,

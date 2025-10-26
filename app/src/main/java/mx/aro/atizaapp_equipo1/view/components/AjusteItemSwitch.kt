@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * Muestra un interruptor (switch) para una opción de configuración.
+ */
 @Composable
 fun AjusteItemSwitch(
     title: String,

@@ -23,6 +23,9 @@ import mx.aro.atizaapp_equipo1.model.data_classes.Negocio
 import mx.aro.atizaapp_equipo1.utils.convertGoogleDriveUrl
 
 // -------------------- ITEM DE CADA NEGOCIO --------------------
+/**
+ * Muestra un elemento de la lista de negocios.
+ */
 @Composable
 fun NegocioItem(negocio: Negocio, navController: NavHostController) {
     Card(
